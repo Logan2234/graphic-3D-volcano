@@ -35,41 +35,39 @@ class Cylinder(Node):
         super().__init__()
         self.add(*load('cylinder.obj', shader))  # just load cylinder from file
 
-def main():
+class Tree(Node):
     """ Hierchical element of the scene with a cylinder base, Round top with 3 leaves"""
+    def __init__(self, shader):
+        super().__init__()
 
-    viewer = Viewer()
-
-    # default color shader
-    shader = Shader("color.vert", "color.frag")
-
-    viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
-    if len(sys.argv) < 2:
+        # --------------- Creation of the tree --------------------------
         cylinder = Cylinder(shader)
         leaf = Leaf(shader)
-        axis = Axis(shader)
 
-        # make a long cylinder
-        base_shape = Node(transform=scale((10,190,10)))
-        base_shape.add(cylinder)                    # shape of robot base
+        # --- make two long cylinders
+        base_shape = Node(transform=scale((10,80,10)))
+        base_shape.add(cylinder)
 
-        # make 4 leaves
-        leaf_1 = Node(transform=scale((0.5,0.5,0.5))@(translate(-5031.9, 13,-1105)))
+        second_cylinder = Node(transform=scale((15,80,15)))
+        second_cylinder.add(cylinder)                    
+
+        # --- make 4 leaves
+        leaf_1 = Node(transform=scale((0.6,0.5,0.5))@(translate(-5041.9, 13,-1105)))
         leaf_1.add(leaf)    # the standard one
 
-        leaf_2 = Node(transform=scale((0.6,0.6,0.6))@(translate(-5031.9, 13,-1105)))
+        leaf_2 = Node(transform=scale((0.4,0.6,0.6))@(translate(-5041.9, 13,-1105)))
         leaf_2.add(leaf)    # a bigger one
 
-        leaf_3 = Node(transform=scale((0.5,0.3,0.3))@(translate(-5031.9, 13,-1105)))
+        leaf_3 = Node(transform=scale((0.5,0.3,0.3))@(translate(-5041.9, 13,-1105)))
         leaf_3.add(leaf)    # a curvier and smaller one
 
-        leaf_4 = Node(transform=scale((0.5,0.7,0.5))@(translate(-5031.9, 13,-1105)))
+        leaf_4 = Node(transform=scale((0.5,0.8,0.5))@(translate(-5041.9, 13,-1105)))
         leaf_4.add(leaf)    # a longer and bigger one
 
-        # ---- construct our robot arm hierarchy ---------------------------
+        # --- hierarchy of the tree
         phi2 = 90.0        # second leaf angle
         phi3 = 180.0         # ...
-        phi4 = 270.0         # 
+        phi4 = 270.0         # ...
 
         transform_leaf4 = Node(transform=rotate((0,1,0), phi4))
         transform_leaf4.add(leaf_4)
@@ -80,20 +78,33 @@ def main():
         transform_leaf2 = Node(transform=rotate((0,1,0), phi2))
         transform_leaf2.add(transform_leaf3, leaf_2)
 
-        transform_leaf1 = Node(transform=translate(0,190,0) )
+        transform_leaf1 = Node(transform=translate(0,75,0) )
         transform_leaf1.add(transform_leaf2, leaf_1)
 
-        transform_base = Node(transform=translate(0,190,0))
-        transform_base.add(base_shape, transform_leaf1)
+        transform_cyl = Node(transform=translate(0,120,0))
+        transform_cyl.add(base_shape, transform_leaf1)
 
-        # transform_arm = Node(transform=translate(0,1,0) @ rotate((0,0,1), phi1))
-        # transform_arm.add(arm_shape, transform_forearm)
+        transform_base = Node(transform=translate(0,80,0))
+        transform_base.add(second_cylinder, transform_cyl) # notre arbre final
 
-        # transform_base = Node(transform=rotate((0,1,0), theta))
-        # transform_base.add(base_shape, transform_arm)
+        self.add(transform_base)
+        #self.tree = transform_base # à récupérer et ajouter dans le viewer.py
 
-        viewer.add(transform_base)
-        #viewer.add(leaf_1)
+def main():
+    """ main """
+    # TODO : transformer en une classe arbre
+
+    viewer = Viewer()
+
+    # default color shader
+    shader = Shader("color.vert", "color.frag")
+
+    viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
+    if len(sys.argv) < 2:
+        tree = Tree(shader)
+        axis = Axis(shader)
+
+        viewer.add(tree)
         viewer.add(axis)
 
         print('Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in'
