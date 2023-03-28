@@ -10,7 +10,7 @@ import numpy as np                  # all matrix manipulations & OpenGL args
 import assimpcy                     # 3D resource loader
 
 # our transform functions
-from transform import Trackball, identity
+from transform import Trackball, identity, quaternion_matrix
 
 # initialize and automatically terminate glfw on exit
 glfw.init()
@@ -397,10 +397,18 @@ class Viewer(Node):
         if action == glfw.PRESS or action == glfw.REPEAT:
             if key == glfw.KEY_ESCAPE or key == glfw.KEY_Q:
                 glfw.set_window_should_close(self.win, True)
-            if key == glfw.KEY_W:
+            if key == glfw.KEY_F2:
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, next(self.fill_modes))
             if key == glfw.KEY_SPACE:
                 glfw.set_time(0.0)
+            if key == glfw.KEY_W:
+                self.trackball.moveX(1, 0)
+            if key == glfw.KEY_A:
+                self.trackball.moveX(0, 1)
+            if key == glfw.KEY_S:
+                self.trackball.moveX(-1, 0)
+            if key == glfw.KEY_D:
+                self.trackball.moveX(0, -1)
 
             # call Node.key_handler which calls key_handlers for all drawables
             self.key_handler(key)

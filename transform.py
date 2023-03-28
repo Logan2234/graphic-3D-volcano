@@ -177,11 +177,11 @@ def quaternion_slerp(q0, q1, fraction):
 class Trackball:
     """Virtual trackball for 3D scene viewing. Independent of window system."""
 
-    def __init__(self, yaw=0., roll=0., pitch=0., distance=3., radians=None):
+    def __init__(self, yaw=0., roll=0., pitch=270., distance=3., radians=None):
         """ Build a new trackball with specified view, angles in degrees """
         self.rotation = quaternion_from_euler(yaw, roll, pitch, radians)
         self.distance = max(distance, 0.001)
-        self.pos2d = vec(0.0, 0.0)
+        self.pos2d = vec(0.0, -2.0)
 
     def drag(self, old, new, winsize):
         """ Move trackball from old to new 2d normalized window position """
@@ -195,6 +195,11 @@ class Trackball:
     def pan(self, old, new):
         """ Pan in camera's reference by a 2d vector factor of (new - old) """
         self.pos2d += (vec(new) - old) * 0.001 * self.distance
+
+    def moveX(self, x, y):
+        """ Move trackball ahead or back """
+        self.distance -= x
+        self.pos2d += vec(y, 0)
 
     def view_matrix(self):
         """ View matrix transformation, including distance to target point """
