@@ -5,7 +5,7 @@ import OpenGL.GL as GL              # standard Python OpenGL wrapper
 import glfw                         # lean window system wrapper for OpenGL
 import numpy as np                  # all matrix manipulations & OpenGL args
 from core import Shader, Viewer, Mesh, load
-from texture import Texture, Textured
+from texture import Texture, Textured, TextureCubeMap
 from PIL import Image               # load texture maps
 
 # -------------- Example textured plane class ---------------------------------
@@ -45,31 +45,56 @@ class TexturedPlane(Textured):
             self.textures.update(diffuse_map=texture)
 
 
-def loadCubemap(faces):
-    textureID = GL.glGenTextures(1)
-    GL.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, textureID)
+class Skybox(Textured):
 
-    for i in range(len(faces)):
-        tex = Image.open(faces[i])
-        if tex:
-            GL.glTexImage2D(GL.GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                            0, GL.GL_RGB, tex.width, tex.height, 0, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, tex.tobytes())
-        else:
-            print("Cubemap tex failed to load at path:", faces[i])
+    def __init__(self, shader, faces):
+        cubemap_texture = TextureCubeMap(faces)
+        skybox_vertices = 100*np.array([
+            # positions
+            (-1.0,  1.0, -1.0),
+            (-1.0, -1.0, -1.0),
+            (1.0, -1.0, -1.0),
+            (1.0, -1.0, -1.0),
+            (1.0,  1.0, -1.0),
+            (-1.0,  1.0, -1.0),
 
-    GL.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP,
-                       GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR)
-    GL.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP,
-                       GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR)
-    GL.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP,
-                       GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE)
-    GL.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP,
-                       GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE)
-    GL.glTexParameteri(GL.GL_TEXTURE_CUBE_MAP,
-                       GL.GL_TEXTURE_WRAP_R, GL.GL_CLAMP_TO_EDGE)
+            (-1.0, -1.0,  1.0),
+            (-1.0, -1.0, -1.0),
+            (-1.0,  1.0, -1.0),
+            (-1.0,  1.0, -1.0),
+            (-1.0,  1.0,  1.0),
+            (-1.0, -1.0,  1.0),
 
-    return textureID
+            (1.0, -1.0, -1.0),
+            (1.0, -1.0,  1.0),
+            (1.0,  1.0,  1.0),
+            (1.0,  1.0,  1.0),
+            (1.0,  1.0, -1.0),
+            (1.0, -1.0, -1.0),
 
+            (-1.0, -1.0,  1.0),
+            (-1.0,  1.0,  1.0),
+            (1.0,  1.0,  1.0),
+            (1.0,  1.0,  1.0),
+            (1.0, -1.0,  1.0),
+            (-1.0, -1.0,  1.0),
+
+            (-1.0,  1.0, -1.0),
+            (1.0,  1.0, -1.0),
+            (1.0,  1.0,  1.0),
+            (1.0,  1.0,  1.0),
+            (-1.0,  1.0,  1.0),
+            (-1.0,  1.0, -1.0),
+
+            (-1.0, -1.0, -1.0),
+            (-1.0, -1.0,  1.0),
+            (1.0, -1.0, -1.0),
+            (1.0, -1.0, -1.0),
+            (-1.0, -1.0,  1.0),
+            (1.0, -1.0,  1.0)
+        ], np.float32)
+        skybox = Mesh(shader, attributes=dict(position=skybox_vertices))
+        super().__init__(skybox, skybox=cubemap_texture)
 
 # -------------- main program and scene setup --------------------------------
 
@@ -77,66 +102,13 @@ def main():
     """ create a window, add scene objects, then run rendering loop """
     viewer = Viewer()
     shader = Shader("texture.vert", "texture.frag")
-
     skybox_shader = Shader("skybox.vert", "skybox.frag")
-    skybox_texture = loadCubemap(["cubemaps/right.png", "cubemaps/left.png",
-                                  "cubemaps/top.png", "cubemaps/bottom.png", "cubemaps/front.png", "cubemaps/back.png"])
-
-    skybox_vertices = [
-
-        # positions
-        -1.0,  1.0, -1.0,
-        -1.0, -1.0, -1.0,
-        1.0, -1.0, -1.0,
-        1.0, -1.0, -1.0,
-        1.0,  1.0, -1.0,
-        -1.0,  1.0, -1.0,
-
-        -1.0, -1.0,  1.0,
-        -1.0, -1.0, -1.0,
-        -1.0,  1.0, -1.0,
-        -1.0,  1.0, -1.0,
-        -1.0,  1.0,  1.0,
-        -1.0, -1.0,  1.0,
-
-        1.0, -1.0, -1.0,
-        1.0, -1.0,  1.0,
-        1.0,  1.0,  1.0,
-        1.0,  1.0,  1.0,
-        1.0,  1.0, -1.0,
-        1.0, -1.0, -1.0,
-
-        -1.0, -1.0,  1.0,
-        -1.0,  1.0,  1.0,
-        1.0,  1.0,  1.0,
-        1.0,  1.0,  1.0,
-        1.0, -1.0,  1.0,
-        -1.0, -1.0,  1.0,
-
-        -1.0,  1.0, -1.0,
-        1.0,  1.0, -1.0,
-        1.0,  1.0,  1.0,
-        1.0,  1.0,  1.0,
-        -1.0,  1.0,  1.0,
-        -1.0,  1.0, -1.0,
-
-        -1.0, -1.0, -1.0,
-        -1.0, -1.0,  1.0,
-        1.0, -1.0, -1.0,
-        1.0, -1.0, -1.0,
-        -1.0, -1.0,  1.0,
-        1.0, -1.0,  1.0
-    ]
-
-    skybox = Mesh(skybox_shader, attributes=dict(position=skybox_vertices))
-
-    GL.glDepthMask(GL.GL_FALSE)
-    GL.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, skybox_texture)
-    GL.glDrawArrays(GL.GL_TRIANGLES, 0, 36)
-    GL.glDepthMask(GL.GL_TRUE)
 
     viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
-    viewer.add(skybox)
+
+    viewer.add(Skybox(skybox_shader, ["cubemaps/right.png", "cubemaps/left.png",
+                                      "cubemaps/top.png", "cubemaps/bottom.png", "cubemaps/front.png", "cubemaps/back.png"]))
+
     if len(sys.argv) != 2:
         print(
             'Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in format supported by assimp.' % (sys.argv[0],))
