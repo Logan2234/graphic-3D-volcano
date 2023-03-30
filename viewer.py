@@ -11,6 +11,7 @@ from texture import Texture, Textured
 # -------------- Example textured plane class ---------------------------------
 class TexturedPlane(Textured):
     """ Simple first textured object """
+
     def __init__(self, shader, tex_file, tex_file2):
         # prepare texture modes cycling variables for interactive toggling
         self.wraps = cycle([GL.GL_REPEAT, GL.GL_MIRRORED_REPEAT,
@@ -25,7 +26,8 @@ class TexturedPlane(Textured):
         base_coords = ((-1, -1, 0), (1, -1, 0), (1, 1, 0), (-1, 1, 0))
         scaled = 100 * np.array(base_coords, np.float32)
         indices = np.array((0, 1, 2, 0, 2, 3), np.uint32)
-        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=((1, 1), (0, 1), (0, 0), (0, 1))), index=indices)
+        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=(
+            (1, 1), (0, 1), (0, 0), (0, 1))), index=indices)
 
         # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
         texture = Texture(tex_file, self.wrap, *self.filter)
@@ -41,14 +43,30 @@ class TexturedPlane(Textured):
             self.textures.update(diffuse_map=texture)
 
 
+class Axis(Mesh):
+    """ Axis object useful for debugging coordinate frames """
+
+    def __init__(self, shader):
+        pos = ((0, 0, 0), (1, 0, 0), (0, 0, 0),
+               (0, 1, 0), (0, 0, 0), (0, 0, 1))
+        col = ((1, 0, 0), (1, 0, 0), (0, 1, 0),
+               (0, 1, 0), (0, 0, 1), (0, 0, 1))
+        super().__init__(shader, attributes=dict(position=pos, color=col))
+
+    def draw(self, primitives=GL.GL_LINES, **uniforms):
+        super().draw(primitives=primitives, **uniforms)
+
 # -------------- main program and scene setup --------------------------------
+
+
 def main():
     """ create a window, add scene objects, then run rendering loop """
     viewer = Viewer()
     shader = Shader("texture.vert", "texture.frag")
+    shader_color = Shader("color.vert", "color.frag")
 
     viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
-
+    viewer.add(Axis(shader_color))
     if len(sys.argv) != 2:
         print('Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in'
               ' format supported by assimp.' % (sys.argv[0],))

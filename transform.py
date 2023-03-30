@@ -5,6 +5,9 @@ Quaternion, graphics 4x4 matrices, and vector utilities.
 @author: franco
 """
 # Python built-in modules
+import numpy as np
+import OpenGL.GL as GL              # standard Python OpenGL wrapper
+import glfw                         # lean window system wrapper for OpenGL
 import math                 # mainly for trigonometry functions
 from numbers import Number  # useful to check type of arg: scalar or vector?
 
@@ -28,8 +31,9 @@ def lerp(point_a, point_b, fraction):
     """ linear interpolation between two quantities with linear operators """
     return point_a + fraction * (point_b - point_a)
 
-
 # Typical 4x4 matrix utilities for OpenGL ------------------------------------
+
+
 def identity():
     """ 4x4 identity matrix """
     return np.identity(4, 'f')
@@ -152,7 +156,8 @@ def quaternion_matrix(q):
     qxy, qxz, qyz = q[1]*q[2], q[1]*q[3], q[2]*q[3]
     return np.array([[2*(nyy + nzz)+1, 2*(qxy - qwz),   2*(qxz + qwy),   0],
                      [2 * (qxy + qwz), 2 * (nxx + nzz) + 1, 2 * (qyz - qwx), 0],
-                     [2 * (qxz - qwy), 2 * (qyz + qwx), 2 * (nxx + nyy) + 1, 0],
+                     [2 * (qxz - qwy), 2 * (qyz + qwx),
+                      2 * (nxx + nyy) + 1, 0],
                      [0, 0, 0, 1]], 'f')
 
 
@@ -196,11 +201,6 @@ class Trackball:
         """ Pan in camera's reference by a 2d vector factor of (new - old) """
         self.pos2d += (vec(new) - old) * 0.001 * self.distance
 
-    def moveX(self, x, y):
-        """ Move trackball ahead or back """
-        self.distance -= x
-        self.pos2d += vec(y, 0)
-
     def view_matrix(self):
         """ View matrix transformation, including distance to target point """
         return translate(*self.pos2d, -self.distance) @ self.matrix()
@@ -225,3 +225,142 @@ class Trackball:
         old, new = (normalized(self._project3d(pos)) for pos in (old, new))
         phi = 2 * math.acos(np.clip(np.dot(old, new), -1, 1))
         return quaternion_from_axis_angle(np.cross(old, new), radians=phi)
+
+
+# class Camera:
+#     def __init__(self):
+#         self.cameraPos = vec(0, 0, 100)
+#         self.cameraFront = vec(0, 0, -1)
+#         self.cameraUp = vec(0, 1, 0)
+
+#         self.yaw = -90
+#         self.pitch = 0
+#         # self.lastFrame = 0
+#         # self.deltaTime = 0
+#         self.cameraSpeed = 1
+
+#     def view_matrix(self):
+#         return lookat(self.cameraPos, self.cameraPos + self.cameraFront, self.cameraUp)
+
+#     def camera_position(self):
+#         return self.cameraPos
+
+#     def projection_matrix(self, win_size):
+#         return perspective(35, win_size[0] / win_size[1], 0.1, 10000)
+
+#     def moveX(self, forward):
+#         # currentFrame = glfw.get_time()
+#         # self.deltaTime = currentFrame - self.lastFrame
+#         # self.lastFrame = currentFrame
+#         # self.cameraSpeed = 50 * self.deltaTime
+#         if forward:
+#             self.cameraPos += self.cameraSpeed * self.cameraFront
+#         else:
+#             self.cameraPos -= self.cameraSpeed * self.cameraFront
+
+#     def moveY(self, right):
+#         if right:
+#             self.cameraPos += normalized(np.cross(self.cameraFront,
+#                                          self.cameraUp)) * self.cameraSpeed
+#             # print(self.cameraPos)
+#         else:
+#             self.cameraPos -= normalized(np.cross(self.cameraFront,
+#                                          self.cameraUp)) * self.cameraSpeed
+
+#     def update_angles(self, yaw, pitch):
+#         self.yaw += yaw
+#         self.pitch += pitch
+
+#         if (self.pitch > 90):
+#             self.pitch = 90
+#         if (self.pitch < -90):
+#             self.pitch = -90
+
+#         self.cameraFront = normalized(
+#             vec(np.cos(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
+#                 np.sin(np.radians(self.pitch)),
+#                 np.sin(np.radians(self.yaw)) * np.cos(np.radians(self.pitch))))
+
+
+class Camera_Movement:
+    FORWARD = 0
+    BACKWARD = 1
+    LEFT = 2
+    RIGHT = 3
+
+
+YAW = -90.0
+PITCH = 0.0
+
+
+class Camera:
+    def __init__(self, position=vec(0.0, 0.0, 0.0), up=vec(0.0, 1.0, 0.0), yaw=YAW, pitch=PITCH):
+        # camera Attributes
+        self.position = position
+        self.front = vec(0.0, 0.0, -1.0)
+        self.up = up
+        self.right = vec(0.0, 0.0, 0.0)
+        self.worldUp = up
+        # euler Angles
+        self.yaw = yaw
+        self.pitch = pitch
+        # camera options
+        self.movementSpeed = 5
+        self.mouseSensitivity = 0.5
+        self.zoom = 45
+        self.updateCameraVectors()
+
+    def camera_position(self):
+        return self.position
+
+    def GetViewMatrix(self):
+        return lookat(self.position, self.position + self.front, self.up)
+
+    def projection_matrix(self, win_size):
+        return perspective(45, win_size[0] / win_size[1], 0.1, 1000)
+
+    def ProcessKeyboard(self, direction):
+        if direction == Camera_Movement.FORWARD:
+            self.position += self.front * self.movementSpeed
+        if direction == Camera_Movement.BACKWARD:
+            self.position -= self.front * self.movementSpeed
+        if direction == Camera_Movement.LEFT:
+            self.position -= self.right * self.movementSpeed
+        if direction == Camera_Movement.RIGHT:
+            self.position += self.right * self.movementSpeed
+
+    def ProcessMouseMovement(self, xoffset, yoffset, constrainPitch=True):
+        xoffset *= self.mouseSensitivity
+        yoffset *= self.mouseSensitivity
+
+        self.yaw += xoffset
+        self.pitch += yoffset
+
+        # make sure that when pitch is out of bounds, screen doesn't get flipped
+        if constrainPitch:
+            if self.pitch > 89:
+                self.pitch = 89
+            if self.pitch < 1:
+                self.pitch = 1
+
+        # update Front, Right and Up Vectors using the updated Euler angles
+        self.updateCameraVectors()
+
+    def ProcessMouseScroll(self, yoffset):
+        self.zoom -= float(yoffset)
+        if self.zoom < 1.0:
+            self.zoom = 1.0
+        if self.zoom > 45.0:
+            self.zoom = 45.0
+
+    def updateCameraVectors(self):
+        # calculate the new Front vector
+        self.front = vec(
+            np.cos(np.radians(self.yaw)),
+            np.sin(np.radians(self.pitch)),
+            np.cos(np.radians(self.pitch)) * np.sin(np.radians(self.yaw)))
+        self.front = normalized(self.front)
+        print(self.pitch, self.yaw, self.front)
+        # also re-calculate the Right and Up vector
+        self.right = normalized(np.cross(self.front, self.worldUp))
+        self.up = normalized(np.cross(self.right, self.front))
