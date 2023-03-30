@@ -450,7 +450,8 @@ class Viewer(Node):
 
     def on_scroll(self, win, _deltax, deltay):
         """ Scroll controls the camera distance to trackball center """
-        self.trackball.zoom(deltay, glfw.get_window_size(win)[1])
+        # self.trackball.zoom(deltay, glfw.get_window_size(win)[1])
+        self.camera.ProcessMouseScroll(-deltay)
 
     def on_size(self, _win, _width, _height):
         """ window size update => update viewport to new framebuffer size """

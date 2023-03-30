@@ -317,7 +317,7 @@ class Camera:
         return lookat(self.position, self.position + self.front, self.up)
 
     def projection_matrix(self, win_size):
-        return perspective(45, win_size[0] / win_size[1], 0.1, 1000)
+        return perspective(self.zoom, win_size[0] / win_size[1], 0.1, 1000)
 
     def ProcessKeyboard(self, direction):
         if direction == Camera_Movement.FORWARD:
@@ -360,7 +360,6 @@ class Camera:
             np.sin(np.radians(self.pitch)),
             np.cos(np.radians(self.pitch)) * np.sin(np.radians(self.yaw)))
         self.front = normalized(self.front)
-        print(self.pitch, self.yaw, self.front)
         # also re-calculate the Right and Up vector
         self.right = normalized(np.cross(self.front, self.worldUp))
         self.up = normalized(np.cross(self.right, self.front))
