@@ -1,7 +1,8 @@
 # Python built-in modules
 import os                           # os function, i.e. checking file status
 from itertools import cycle         # allows easy circular choice list
-import atexit                       # launch a function at exit
+import atexit
+import time                       # launch a function at exit
 
 # External, non built-in modules
 import OpenGL.GL as GL              # standard Python OpenGL wrapper
@@ -10,7 +11,7 @@ import numpy as np                  # all matrix manipulations & OpenGL args
 import assimpcy                     # 3D resource loader
 
 # our transform functions
-from transform import Camera, Camera_Movement, Trackball, identity, quaternion_matrix
+from transform import Camera, identity
 
 # initialize and automatically terminate glfw on exit
 glfw.init()
@@ -354,12 +355,11 @@ class Viewer(Node):
         # make win's OpenGL context current; no OpenGL calls can happen before
         glfw.make_context_current(self.win)
 
-        # initialize trackball
-        self.trackball = Trackball()
         self.camera = Camera()
-        self.mouse = (glfw.get_window_size(self.win)[
-                      0]/2, glfw.get_window_size(self.win)[1]/2)
-        self.firstMouse = True
+        windows_size = glfw.get_window_size(self.win)
+        self.mouse = (windows_size[0]/2, windows_size[1]/2)
+        self.first_mouse = True
+        self.limit_fps = True
 
         # register event handlers
         glfw.set_key_callback(self.win, self.on_key)
@@ -382,28 +382,31 @@ class Viewer(Node):
 
     def run(self):
         """ Main render loop for this OpenGL window """
+        last_time = time.time()
         while not glfw.window_should_close(self.win):
-            # clear draw buffer and depth buffer (<-TP2)
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+            if (self.limit_fps and time.time() - last_time > 1/60):
+                # clear draw buffer and depth buffer (<-TP2)
+                GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
-            # Hide the cursor
-            glfw.set_input_mode(self.win, glfw.CURSOR, glfw.CURSOR_DISABLED)
+                # Hide the cursor
+                glfw.set_input_mode(self.win, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
-            win_size = glfw.get_window_size(self.win)
+                win_size = glfw.get_window_size(self.win)
 
-            # draw our scene objects
-            self.draw(view=self.camera.GetViewMatrix(),
-                      projection=self.camera.projection_matrix(win_size),
-                      model=identity(),
-                      w_camera_position=self.camera.camera_position())
+                # draw our scene objects
+                self.draw(view=self.camera.GetViewMatrix(),
+                        projection=self.camera.projection_matrix(win_size),
+                        model=identity(),
+                        w_camera_position=self.camera.camera_position())
 
-            # flush render commands, and swap draw buffers
-            glfw.swap_buffers(self.win)
+                # flush render commands, and swap draw buffers
+                glfw.swap_buffers(self.win)
 
-            # Poll for and process events
-            glfw.poll_events()
+                # Poll for and process events
+                glfw.poll_events()
+                last_time = time.time()
 
-    def on_key(self, _win, key, _scancode, action, _mods):
+    def on_key(self, win, key, _scancode, action, _mods):
         """ 'Q' or 'Escape' quits """
         if action == glfw.PRESS or action == glfw.REPEAT:
             if key == glfw.KEY_ESCAPE or key == glfw.KEY_Q:
@@ -412,34 +415,17 @@ class Viewer(Node):
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, next(self.fill_modes))
             if key == glfw.KEY_SPACE:
                 glfw.set_time(0.0)
-            if key == glfw.KEY_W:
-                self.camera.ProcessKeyboard(Camera_Movement.FORWARD)
-                # self.camera.moveX(True)
-            if key == glfw.KEY_A:
-                self.camera.ProcessKeyboard(Camera_Movement.LEFT)
-                # self.camera.moveY(False)
-            if key == glfw.KEY_S:
-                self.camera.ProcessKeyboard(Camera_Movement.BACKWARD)
-                # self.camera.moveX(False)
-            if key == glfw.KEY_D:
-                self.camera.ProcessKeyboard(Camera_Movement.RIGHT)
-                # self.camera.moveY(True)
+            if key in (glfw.KEY_W,glfw.KEY_A,glfw.KEY_S,glfw.KEY_D):
+                self.camera.ProcessMouvement(win)
 
             # call Node.key_handler which calls key_handlers for all drawables
             self.key_handler(key)
 
     def on_mouse_move(self, win, xpos, ypos):
         """ Rotate on left-click & drag, pan on right-click & drag """
-        # old = self.mouse
-        # self.mouse = (xpos, glfw.get_window_size(win)[1] - ypos)
-        # if glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_LEFT):
-        #     self.trackball.drag(old, self.mouse, glfw.get_window_size(win))
-        # if glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_RIGHT):
-        #     self.trackball.pan(old, self.mouse)
-
-        if (self.firstMouse):
+        if (self.first_mouse):
             self.mouse = (xpos, ypos)
-            self.firstMouse = False
+            self.first_mouse = False
 
         sensitivity = 0.1
         xoffset = (xpos - self.mouse[0]) * sensitivity

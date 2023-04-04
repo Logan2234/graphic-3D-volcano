@@ -227,54 +227,50 @@ class Trackball:
         return quaternion_from_axis_angle(np.cross(old, new), radians=phi)
 
 
-class Camera_Movement:
-    FORWARD = 0
-    BACKWARD = 1
-    LEFT = 2
-    RIGHT = 3
-
-
-YAW = 0
-PITCH = 0
-
-
 class Camera:
-    def __init__(self, position=vec(0.0, -3.0, 3.0), up=vec(0.0, 0.0, 1.0), yaw=YAW, pitch=PITCH):
+    """New camera class because apparently trackball wasn't... good enough :P"""
+
+    def __init__(self):
         # camera Attributes
-        self.position = position
-        self.front = normalized(vec(1.0, 1.0, 0))
-        self.up = up
+        self.position = vec(-3.0, 0.0, 3.0)
+        self.front = vec(0.0, 0.0, 0.0)
+        self.up = vec(0.0, 0.0, 0.0)
         self.right = vec(0.0, 0.0, 0.0)
-        self.worldUp = up
+        self.worldUp = vec(0.0, 0.0, 1.0)
         # euler Angles
-        self.yaw = yaw
-        self.pitch = pitch
+        self.yaw = 0
+        self.pitch = 0
         # camera options
-        self.movementSpeed = 5
-        self.mouseSensitivity = 0.5
+        self.movementSpeed = 1
+        self.mouseSensitivity = 0.75
         self.zoom = 50
         self.updateCameraVectors()
 
     def camera_position(self):
+        """Returns the camera position"""
         return self.position
 
     def GetViewMatrix(self):
+        """Returns the view matrix"""
         return lookat(self.position, self.position + self.front, self.up)
 
     def projection_matrix(self, win_size):
+        """Returns the projection matrix"""
         return perspective(self.zoom, win_size[0] / win_size[1], 0.1, 1000)
 
-    def ProcessKeyboard(self, direction):
-        if direction == Camera_Movement.FORWARD:
+    def ProcessMouvement(self, win):
+        """Allows the camera translate"""
+        if glfw.get_key(win, glfw.KEY_W):
             self.position += self.front * self.movementSpeed
-        if direction == Camera_Movement.BACKWARD:
+        if glfw.get_key(win, glfw.KEY_S):
             self.position -= self.front * self.movementSpeed
-        if direction == Camera_Movement.LEFT:
+        if glfw.get_key(win, glfw.KEY_A):
             self.position -= self.right * self.movementSpeed
-        if direction == Camera_Movement.RIGHT:
+        if glfw.get_key(win, glfw.KEY_D):
             self.position += self.right * self.movementSpeed
 
     def ProcessMouseMovement(self, xoffset, yoffset, constrainPitch=True):
+        """Allows the camera to rotate around"""
         xoffset *= self.mouseSensitivity
         yoffset *= self.mouseSensitivity
 
@@ -292,21 +288,21 @@ class Camera:
         self.updateCameraVectors()
 
     def ProcessMouseScroll(self, yoffset):
+        """Zoom effect using mouse scroll"""
         self.zoom -= float(yoffset)
         if self.zoom < 1.0:
             self.zoom = 1.0
         if self.zoom > 50.0:
             self.zoom = 50.0
-    
+
     def updateCameraVectors(self):
+        """Compute all the vectors after a rotation"""
         # calculate the new Front vector
         self.front = vec(
-            np.sin(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
             np.cos(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
+            -np.sin(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
             np.sin(np.radians(self.pitch)))
-        print(self.yaw, self.pitch, self.front, np.cos(np.radians(self.pitch)))
         self.front = normalized(self.front)
         # also re-calculate the Right and Up vector
         self.right = normalized(np.cross(self.front, self.worldUp))
         self.up = normalized(np.cross(self.right, self.front))
-
