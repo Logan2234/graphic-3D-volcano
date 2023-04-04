@@ -79,8 +79,12 @@ class Textured:
         self.textures = textures
 
     def draw(self, primitives=GL.GL_TRIANGLES, **uniforms):
+        if "skybox" in self.textures:
+            GL.glDisable(GL.GL_DEPTH_TEST)
         for index, (name, texture) in enumerate(self.textures.items()):
             GL.glActiveTexture(GL.GL_TEXTURE0 + index)
             GL.glBindTexture(texture.type, texture.glid)
             uniforms[name] = index
         self.drawable.draw(primitives=primitives, **uniforms)
+        if "skybox" in self.textures:
+            GL.glDisable(GL.GL_DEPTH_TEST)

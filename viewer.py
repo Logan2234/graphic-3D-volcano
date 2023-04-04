@@ -26,7 +26,7 @@ class TexturedPlane(Textured):
 
         # setup plane mesh to be textured
         base_coords = ((-1, -1, 0), (1, -1, 0), (1, 1, 0), (-1, 1, 0))
-        scaled = 100 * np.array(base_coords, np.float32)
+        scaled = 100*np.array(base_coords, np.float32)
         indices = np.array((0, 1, 2, 0, 2, 3), np.uint32)
         mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=(
             (1, 1), (0, 1), (0, 0), (0, 1))), index=indices)
@@ -49,7 +49,7 @@ class Skybox(Textured):
 
     def __init__(self, shader, faces):
         cubemap_texture = TextureCubeMap(faces)
-        skybox_vertices = 100*np.array([
+        skybox_vertices = np.array([
             # positions
             (-1.0,  1.0, -1.0),
             (-1.0, -1.0, -1.0),
@@ -112,7 +112,7 @@ def main():
     if len(sys.argv) != 2:
         print(
             'Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in format supported by assimp.' % (sys.argv[0],))
-        # viewer.add(TexturedPlane(shader, "grass.png", "flowers.png"))
+        viewer.add(TexturedPlane(shader, "grass.png", "flowers.png"))
 
     # start rendering loop
     viewer.run()
