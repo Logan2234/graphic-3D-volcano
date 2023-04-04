@@ -14,7 +14,7 @@
 
 - Lumière
 - Textures
-- Fog effect
+- ~~Fog effect~~
 - Skybox
 - Particle system: vapeur (lave en contact avec l'eau), reflexion de l'eau
 
