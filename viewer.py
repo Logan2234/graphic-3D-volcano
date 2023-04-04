@@ -6,9 +6,11 @@ import glfw                         # lean window system wrapper for OpenGL
 import numpy as np                  # all matrix manipulations & OpenGL args
 from core import Shader, Viewer, Mesh, load
 from texture import Texture, Textured
-
+from transform import compute_normals
 
 # -------------- Example textured plane class ---------------------------------
+
+
 class Volcano(Textured):
     """ Simple first textured object """
 
@@ -36,13 +38,16 @@ class Volcano(Textured):
         # indices += [(10+i, 10+(i+1) % 8, 19) for i in range(8)]
         indices += [(0, 1, 11), (11, 1, 12), (1, 2, 12), (12, 2, 13), (2, 3, 13), (3, 4, 13), (13, 4, 14), (14, 4, 5), (14, 5, 15),
                     (15, 5, 6), (15, 6, 16), (16, 6, 7), (16, 7, 8), (16, 8, 17), (17, 8, 9), (10, 17, 9), (10, 9, 0), (0, 11, 10)]
+        normal = compute_normals(base_coords, indices)
 
-        mesh = Mesh(shader, attributes=dict(position=scaled), index=indices)
+        mesh = Mesh(shader, attributes=dict(in_position=scaled, in_texcoord=(
+            (1, 1), (0, 1), (0, 0), (0, 1)), in_normal=normal), index=indices)
 
         # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
         texture = Texture(tex_file, self.wrap, *self.filter)
         # texture2 = Texture(tex_file2, self.wrap, *self.filter)
         super().__init__(mesh, diffuse_map=texture)
+
     def key_handler(self, key):
         # cycle through texture modes on keypress of F6 (wrap) or F7 (filtering)
         self.wrap = next(self.wraps) if key == glfw.KEY_F6 else self.wrap
@@ -69,13 +74,14 @@ class TexturedPlane(Textured):
         base_coords = ((-1, -1, 0), (1, -1, 0), (1, 1, 0), (-1, 1, 0))
         scaled = 100 * np.array(base_coords, np.float32)
         indices = np.array((0, 1, 2, 0, 2, 3), np.uint32)
-        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=(
-            (1, 1), (0, 1), (0, 0), (0, 1))), index=indices)
+        normal = compute_normals(base_coords, indices)
+        mesh = Mesh(shader, attributes=dict(in_position=scaled, in_texcoord=(
+            (1, 1), (0, 1), (0, 0), (0, 1)), in_normal=normal), index=indices, usage=GL.GL_STATIC_DRAW, )
 
         # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
         texture = Texture(tex_file, self.wrap, *self.filter)
         texture2 = Texture(tex_file2, self.wrap, *self.filter)
-        super().__init__(mesh, diffuse_map=texture, tex2=texture2)
+        super().__init__(mesh, diffuse_map=texture, diffuse_map_2=texture2)
 
     def key_handler(self, key):
         # cycle through texture modes on keypress of F6 (wrap) or F7 (filtering)
@@ -90,7 +96,7 @@ class TexturedPlane(Textured):
 def main():
     """ create a window, add scene objects, then run rendering loop """
     viewer = Viewer()
-    shader = Shader("texture.vert", "texture.frag")
+    shader = Shader("fog.vert", "fog.frag")
 
     viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
     viewer.add(Volcano(shader, "basalte.jpg"))
