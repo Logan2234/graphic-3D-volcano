@@ -26,11 +26,11 @@ class Volcano(Textured):
         GL.glDisable(GL.GL_CULL_FACE)
 
         # setup mesh to be textured
-        base_coords = [(np.cos(np.deg2rad(18+i*36)), np.sin(np.deg2rad(18+i*36)), 0)
+        base_coords = [(np.cos(np.deg2rad(18+i*36)), np.sin(np.deg2rad(18+i*36)), 0.1)
                        for i in range(10)]  # vertex for the base
         base_coords += [(0.6*np.cos(np.deg2rad(i*45)), 0.6*np.sin(np.deg2rad(i*45)), 1)
                         for i in range(8)]  # vertex for the base
-        base_coords += [(0, 0, 0), (0, 0, 1)]
+        base_coords += [(0, 0, 0.1), (0, 0, 1)]
         scaled = 1000 * np.array(base_coords, np.float32)
 
         # scaled = 100 * np.array(base_coords, np.float32)
@@ -92,18 +92,31 @@ class TexturedPlane(Textured):
             self.textures.update(diffuse_map=texture)
 
 
+class WaterPlane(Textured):
+    """ Simple first textured object """
+
+    def __init__(self, shader):
+        # setup plane mesh to be textured
+        base_coords = ((-1, -1, 0), (1, -1, 0), (1, 1, 0), (-1, 1, 0))
+        scaled = 10000 * np.array(base_coords, np.float32)
+        indices = np.array(((0, 1, 2), (0, 2, 3)), np.uint32)
+        normal = compute_normals(base_coords, indices)
+        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=((1, 1), (0, 1), (0, 0), (0, 1))), index=indices, usage=GL.GL_STATIC_DRAW, )
+        super().__init__(mesh, tex=Texture("grass.png", GL.GL_REPEAT, GL.GL_NEAREST, GL.GL_NEAREST))
+
 # -------------- main program and scene setup --------------------------------
 def main():
     """ create a window, add scene objects, then run rendering loop """
     viewer = Viewer()
-    shader = Shader("fog.vert", "fog.frag")
+    shader_color = Shader("fog.vert", "fog.frag")
+    water_shader = Shader("water.vert", "water.frag")
 
-    viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
-    viewer.add(Volcano(shader, "basalte.jpg"))
+    viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader_color)])
+    viewer.add(Volcano(shader_color, "basalte.jpg"))
     if len(sys.argv) != 2:
         print('Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in'
               ' format supported by assimp.' % (sys.argv[0],))
-        # viewer.add(TexturedPlane(shader, "grass.png", "flowers.png"))
+        viewer.add(WaterPlane(water_shader))
 
     # start rendering loop
     viewer.run()
