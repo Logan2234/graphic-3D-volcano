@@ -29,6 +29,16 @@ def lerp(point_a, point_b, fraction):
     return point_a + fraction * (point_b - point_a)
 
 
+def compute_normals(base_coords, indices):
+    normals = []
+    for (a, b, c) in np.array_split(indices, len(indices)/3):
+        v1 = np.subtract(base_coords[a], base_coords[b])
+        v2 = np.subtract(base_coords[c], base_coords[b])
+        normals.append(normalized(np.cross(v1, v2)))
+        normals.append(normalized(np.cross(v1, v2)))
+        normals.append(normalized(np.cross(v1, v2)))
+    return np.array(normals, np.float32)
+
 # Typical 4x4 matrix utilities for OpenGL ------------------------------------
 def identity():
     """ 4x4 identity matrix """
@@ -152,7 +162,8 @@ def quaternion_matrix(q):
     qxy, qxz, qyz = q[1]*q[2], q[1]*q[3], q[2]*q[3]
     return np.array([[2*(nyy + nzz)+1, 2*(qxy - qwz),   2*(qxz + qwy),   0],
                      [2 * (qxy + qwz), 2 * (nxx + nzz) + 1, 2 * (qyz - qwx), 0],
-                     [2 * (qxz - qwy), 2 * (qyz + qwx), 2 * (nxx + nyy) + 1, 0],
+                     [2 * (qxz - qwy), 2 * (qyz + qwx),
+                      2 * (nxx + nyy) + 1, 0],
                      [0, 0, 0, 1]], 'f')
 
 

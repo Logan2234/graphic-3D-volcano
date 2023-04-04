@@ -7,6 +7,7 @@ import numpy as np                  # all matrix manipulations & OpenGL args
 from core import Shader, Viewer, Mesh, load
 from texture import Texture, Textured, TextureCubeMap
 from PIL import Image               # load texture maps
+from transform import compute_normals
 
 # -------------- Example textured plane class ---------------------------------
 
@@ -27,14 +28,13 @@ class TexturedPlane(Textured):
         # setup plane mesh to be textured
         base_coords = ((-1, -1, 0), (1, -1, 0), (1, 1, 0), (-1, 1, 0))
         scaled = 100*np.array(base_coords, np.float32)
-        indices = np.array((0, 1, 2, 0, 2, 3), np.uint32)
-        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=(
-            (1, 1), (0, 1), (0, 0), (0, 1))), index=indices)
+        indices = np.array(((0, 1, 2), (0, 2, 3)), np.uint32)
+        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=((1, 1), (0, 1), (0, 0), (0, 1))), index=indices, usage=GL.GL_STATIC_DRAW, )
 
         # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
         texture = Texture(tex_file, self.wrap, *self.filter)
         texture2 = Texture(tex_file2, self.wrap, *self.filter)
-        super().__init__(mesh, diffuse_map=texture, tex2=texture2)
+        super().__init__(mesh, diffuse_map=texture, diffuse_map2=texture2)
 
     def key_handler(self, key):
         # cycle through texture modes on keypress of F6 (wrap) or F7 (filtering)
@@ -103,7 +103,7 @@ def main():
     viewer = Viewer()
     shader = Shader("texture.vert", "texture.frag")
     skybox_shader = Shader("skybox.vert", "skybox.frag")
-
+    
     viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
 
     viewer.add(Skybox(skybox_shader, ["cubemaps/right.png", "cubemaps/left.png",
