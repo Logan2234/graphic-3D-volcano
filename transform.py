@@ -31,7 +31,7 @@ def lerp(point_a, point_b, fraction):
 
 def compute_normals(base_coords, indices):
     normals = []
-    for (a, b, c) in np.array_split(indices, len(indices)/3):
+    for (a, b, c) in indices:
         v1 = np.subtract(base_coords[a], base_coords[b])
         v2 = np.subtract(base_coords[c], base_coords[b])
         normals.append(normalized(np.cross(v1, v2)))
