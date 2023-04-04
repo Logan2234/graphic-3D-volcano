@@ -227,61 +227,6 @@ class Trackball:
         return quaternion_from_axis_angle(np.cross(old, new), radians=phi)
 
 
-# class Camera:
-#     def __init__(self):
-#         self.cameraPos = vec(0, 0, 100)
-#         self.cameraFront = vec(0, 0, -1)
-#         self.cameraUp = vec(0, 1, 0)
-
-#         self.yaw = -90
-#         self.pitch = 0
-#         # self.lastFrame = 0
-#         # self.deltaTime = 0
-#         self.cameraSpeed = 1
-
-#     def view_matrix(self):
-#         return lookat(self.cameraPos, self.cameraPos + self.cameraFront, self.cameraUp)
-
-#     def camera_position(self):
-#         return self.cameraPos
-
-#     def projection_matrix(self, win_size):
-#         return perspective(35, win_size[0] / win_size[1], 0.1, 10000)
-
-#     def moveX(self, forward):
-#         # currentFrame = glfw.get_time()
-#         # self.deltaTime = currentFrame - self.lastFrame
-#         # self.lastFrame = currentFrame
-#         # self.cameraSpeed = 50 * self.deltaTime
-#         if forward:
-#             self.cameraPos += self.cameraSpeed * self.cameraFront
-#         else:
-#             self.cameraPos -= self.cameraSpeed * self.cameraFront
-
-#     def moveY(self, right):
-#         if right:
-#             self.cameraPos += normalized(np.cross(self.cameraFront,
-#                                          self.cameraUp)) * self.cameraSpeed
-#             # print(self.cameraPos)
-#         else:
-#             self.cameraPos -= normalized(np.cross(self.cameraFront,
-#                                          self.cameraUp)) * self.cameraSpeed
-
-#     def update_angles(self, yaw, pitch):
-#         self.yaw += yaw
-#         self.pitch += pitch
-
-#         if (self.pitch > 90):
-#             self.pitch = 90
-#         if (self.pitch < -90):
-#             self.pitch = -90
-
-#         self.cameraFront = normalized(
-#             vec(np.cos(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
-#                 np.sin(np.radians(self.pitch)),
-#                 np.sin(np.radians(self.yaw)) * np.cos(np.radians(self.pitch))))
-
-
 class Camera_Movement:
     FORWARD = 0
     BACKWARD = 1
@@ -289,15 +234,15 @@ class Camera_Movement:
     RIGHT = 3
 
 
-YAW = -90.0
-PITCH = 0.0
+YAW = 0
+PITCH = 0
 
 
 class Camera:
-    def __init__(self, position=vec(0.0, 0.0, 0.0), up=vec(0.0, 1.0, 0.0), yaw=YAW, pitch=PITCH):
+    def __init__(self, position=vec(0.0, -3.0, 3.0), up=vec(0.0, 0.0, 1.0), yaw=YAW, pitch=PITCH):
         # camera Attributes
         self.position = position
-        self.front = vec(0.0, 0.0, -1.0)
+        self.front = normalized(vec(1.0, 1.0, 0))
         self.up = up
         self.right = vec(0.0, 0.0, 0.0)
         self.worldUp = up
@@ -307,7 +252,7 @@ class Camera:
         # camera options
         self.movementSpeed = 5
         self.mouseSensitivity = 0.5
-        self.zoom = 45
+        self.zoom = 50
         self.updateCameraVectors()
 
     def camera_position(self):
@@ -338,10 +283,10 @@ class Camera:
 
         # make sure that when pitch is out of bounds, screen doesn't get flipped
         if constrainPitch:
-            if self.pitch > 89:
-                self.pitch = 89
-            if self.pitch < 1:
-                self.pitch = 1
+            if self.pitch > 90:
+                self.pitch = 90
+            if self.pitch < -90:
+                self.pitch = -90
 
         # update Front, Right and Up Vectors using the updated Euler angles
         self.updateCameraVectors()
@@ -350,16 +295,18 @@ class Camera:
         self.zoom -= float(yoffset)
         if self.zoom < 1.0:
             self.zoom = 1.0
-        if self.zoom > 45.0:
-            self.zoom = 45.0
-
+        if self.zoom > 50.0:
+            self.zoom = 50.0
+    
     def updateCameraVectors(self):
         # calculate the new Front vector
         self.front = vec(
+            np.sin(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
             np.cos(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
-            np.sin(np.radians(self.pitch)),
-            np.cos(np.radians(self.pitch)) * np.sin(np.radians(self.yaw)))
+            np.sin(np.radians(self.pitch)))
+        print(self.yaw, self.pitch, self.front, np.cos(np.radians(self.pitch)))
         self.front = normalized(self.front)
         # also re-calculate the Right and Up vector
         self.right = normalized(np.cross(self.front, self.worldUp))
         self.up = normalized(np.cross(self.right, self.front))
+
