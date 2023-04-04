@@ -356,7 +356,7 @@ class Camera:
     def updateCameraVectors(self):
         # calculate the new Front vector
         self.front = vec(
-            np.cos(np.radians(self.yaw)),
+            np.cos(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
             np.sin(np.radians(self.pitch)),
             np.cos(np.radians(self.pitch)) * np.sin(np.radians(self.yaw)))
         self.front = normalized(self.front)
