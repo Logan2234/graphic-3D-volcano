@@ -252,7 +252,7 @@ class Camera:
         self.yaw = 0
         self.pitch = 0
         # camera options
-        self.movementSpeed = 1
+        self.movementSpeed = 15
         self.mouseSensitivity = 0.75
         self.zoom = 50
         self.updateCameraVectors()
@@ -267,7 +267,7 @@ class Camera:
 
     def projection_matrix(self, win_size):
         """Returns the projection matrix"""
-        return perspective(self.zoom, win_size[0] / win_size[1], 0.1, 1000)
+        return perspective(self.zoom, win_size[0] / win_size[1], 0.1, 10000)
 
     def ProcessMouvement(self, win):
         """Allows the camera translate"""

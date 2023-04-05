@@ -8,7 +8,7 @@ from core import Shader, Viewer, Mesh, load
 from texture import Texture, Textured, TextureCubeMap
 from PIL import Image               # load texture maps
 from transform import compute_normals
-from math import Math
+import math as Math
 from perlin_noise import PerlinNoise
 
 noise1 = PerlinNoise(octaves=3)
@@ -66,7 +66,7 @@ class Floor(Textured):
         positions = []
         for i in range(-150, 151):
             for j in range(-150, 151):
-                positions.append((i, 10 * self.getAltitude(i, j, 0.33) * self.smoothStep(130, 150, i, j), j))
+                positions.append((i, j, 10 * self.getAltitude(i, j, 0.33) * self.smoothStep(130, 150, i, j)))
 
         longueur_base = len(positions)
 
@@ -74,253 +74,226 @@ class Floor(Textured):
 
         for i in range(150, 181):
             for j in range(-150, 151):
-                positions.append((i, 0, j))
+                positions.append((i, j, 0))
         
         longueur_rectangle = len(positions) - longueur_base
         
         for i in range(-180, -149):
             for j in range(-150, 151):
-                positions.append((i, 0, j))
+                positions.append((i, j, 0))
 
         for i in range(-150, 151):
             for j in range(-180, -149):
-                positions.append((i, 0, j))
+                positions.append((i, j, 0))
 
         for i in range(-150, 151):
             for j in range(150, 181):
-                positions.append((i, 0, j))
+                positions.append((i, j, 0))
 
         # Coins supérieurs
                 
-        positions.append((150, 0, 150))
+        positions.append((150, 150, 0))
         for i in range(20):
-            positions.append((150 + 30 * np.cos(2 * np.pi * i / 40), 0, 150 + 30 * np.sin(2 * np.pi * i / 40)))
-            positions.append((150 + 30 * np.cos(2 * np.pi * (i + 1) / 40), 0, 150 + 30 * np.sin(2 * np.pi * (i + 1) / 40)))
+            positions.append((150 + 30 * np.cos(2 * np.pi * i / 40), 150 + 30 * np.sin(2 * np.pi * i / 40), 0))
+            positions.append((150 + 30 * np.cos(2 * np.pi * (i + 1) / 40), 150 + 30 * np.sin(2 * np.pi * (i + 1) / 40), 0))
 
-        positions.append((-150, 0, 150))
+        positions.append((-150, 150, 0))
         for i in range(20):
-            positions.append((-150 + 30 * np.cos(2 * np.pi * (i + 20) / 40), 0, 150 - 30 * np.sin(2 * np.pi * (i + 20) / 40)))
-            positions.append((-150 + 30 * np.cos(2 * np.pi * (i + 20 + 1) / 40), 0, 150 - 30 * np.sin(2 * np.pi * (i + 20 + 1) / 40)))
+            positions.append((-150 + 30 * np.cos(2 * np.pi * (i + 20) / 40), 150 - 30 * np.sin(2 * np.pi * (i + 20) / 40), 0))
+            positions.append((-150 + 30 * np.cos(2 * np.pi * (i + 20 + 1) / 40), 150 - 30 * np.sin(2 * np.pi * (i + 20 + 1) / 40), 0))
 
-        positions.append((-150, 0, -150))
+        positions.append((-150, -150, 0))
         for i in range(20):
-            positions.append((-150 - 30 * np.cos(2 * np.pi * i / 40), 0, -150 - 30 * np.sin(2 * np.pi * i / 40)))
-            positions.append((-150 - 30 * np.cos(2 * np.pi * (i + 1) / 40), 0, -150 - 30 * np.sin(2 * np.pi * (i + 1) / 40)))
+            positions.append((-150 - 30 * np.cos(2 * np.pi * i / 40), -150 - 30 * np.sin(2 * np.pi * i / 40), 0))
+            positions.append((-150 - 30 * np.cos(2 * np.pi * (i + 1) / 40), -150 - 30 * np.sin(2 * np.pi * (i + 1) / 40), 0))
 
-        positions.append((150, 0, -150))
+        positions.append((150, -150, 0))
         for i in range(20):
-            positions.append((150 + 30 * np.cos(2 * np.pi * i / 40), 0, -150 - 30 * np.sin(2 * np.pi * i / 40)))
-            positions.append((150 + 30 * np.cos(2 * np.pi * (i + 1) / 40), 0, -150 - 30 * np.sin(2 * np.pi * (i + 1) / 40)))
+            positions.append((150 + 30 * np.cos(2 * np.pi * i / 40), -150 - 30 * np.sin(2 * np.pi * i / 40), 0))
+            positions.append((150 + 30 * np.cos(2 * np.pi * (i + 1) / 40), -150 - 30 * np.sin(2 * np.pi * (i + 1) / 40), 0))
 
         # Coins inférieurs
                 
-        positions.append((120, -30, 120))
+        positions.append((120, 120, -30))
         for i in range(20):
-            positions.append((120 + 30 * np.cos(2 * np.pi * i / 40), -30, 120 + 30 * np.sin(2 * np.pi * i / 40)))
-            positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), -30, 120 + 30 * np.sin(2 * np.pi * (i + 1) / 40)))
+            positions.append((120 + 30 * np.cos(2 * np.pi * i / 40), 120 + 30 * np.sin(2 * np.pi * i / 40), -30))
+            positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), 120 + 30 * np.sin(2 * np.pi * (i + 1) / 40), -30))
 
-        positions.append((-120, -30, 120))
+        positions.append((-120, 120, -30))
         for i in range(20):
-            positions.append((-120 + 30 * np.cos(2 * np.pi * (i + 20) / 40), -30, 120 - 30 * np.sin(2 * np.pi * (i + 20) / 40)))
-            positions.append((-120 + 30 * np.cos(2 * np.pi * (i + 20 + 1) / 40), -30, 120 - 30 * np.sin(2 * np.pi * (i + 20 + 1) / 40)))
+            positions.append((-120 + 30 * np.cos(2 * np.pi * (i + 20) / 40), 120 - 30 * np.sin(2 * np.pi * (i + 20) / 40), -30))
+            positions.append((-120 + 30 * np.cos(2 * np.pi * (i + 20 + 1) / 40), 120 - 30 * np.sin(2 * np.pi * (i + 20 + 1) / 40), -30))
 
-        positions.append((-120,-30, -120))
+        positions.append((-120, -120, -30))
         for i in range(20):
-            positions.append((-120 - 30 * np.cos(2 * np.pi * i / 40), -30, -120 - 30 * np.sin(2 * np.pi * i / 40)))
-            positions.append((-120 - 30 * np.cos(2 * np.pi * (i + 1) / 40), -30, -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40)))
+            positions.append((-120 - 30 * np.cos(2 * np.pi * i / 40), -120 - 30 * np.sin(2 * np.pi * i / 40), -30))
+            positions.append((-120 - 30 * np.cos(2 * np.pi * (i + 1) / 40), -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40), -30))
 
-        positions.append((120, -30, -120))
+        positions.append((120, -120, -30))
         for i in range(20):
-            positions.append((120 + 30 * np.cos(2 * np.pi * i / 40), -30, -120 - 30 * np.sin(2 * np.pi * i / 40)))
-            positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), -30, -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40)))
+            positions.append((120 + 30 * np.cos(2 * np.pi * i / 40), -120 - 30 * np.sin(2 * np.pi * i / 40), -30))
+            positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40), -30))
 
         # Bords inférieurs
 
         for i in range(-120, 121): # Bord inférieur nord
-            positions.append((i, -30, -150))
+            positions.append((i, -150, -30))
         
         for i in range(-120, 121): # Bord supérieur nord
             if i < 0:
-                positions.append((Math.floor(i*150/120), 0, -180))
+                positions.append((Math.floor(i*150/120), -180, 0))
             else :
-                positions.append((Math.ceil(i*150/120), 0, -180))
+                positions.append((Math.ceil(i*150/120), -180, 0))
             
         for i in range(-120, 121): # Bord inférieur est
-            positions.append((150, -30, i))
+            positions.append((150, i, -30))
         
         for i in range(-120, 121): # Bord supérieur est
             if i < 0:
-                positions.append((180, 0, Math.floor(i*150/120)))
+                positions.append((180, Math.floor(i*150/120), 0))
             else :
-                positions.append((180, 0, Math.ceil(i*150/120)))
+                positions.append((180, Math.ceil(i*150/120), 0))
             
         for i in range(-120, 121): # Bord inférieur sud
-            positions.append((i, -30, 150))
+            positions.append((i, 150, -30))
 
         for i in range(-120, 121): # Bord supérieur sud
             if i < 0:
-                positions.append((Math.floor(i*150/120), 0, 180))
+                positions.append((Math.floor(i*150/120), 180, 0))
             else :
-                positions.append((Math.ceil(i*150/120), 0, 180))
+                positions.append((Math.ceil(i*150/120), 180, 0))
 
         for i in range(-120, 121): # Bord inférieur ouest
-            positions.append((-150, -30, i))
+            positions.append((-150, i, -30))
         
         for i in range(-120, 121): # Bord supérieur ouest
             if i < 0:
-                positions.append((-180, 0, Math.floor(i*150/120)))
+                positions.append((-180, Math.floor(i*150/120), 0))
             else :
-                positions.append((-180, 0, Math.ceil(i*150/120)))
+                positions.append((-180, Math.ceil(i*150/120), 0))
 
         # Rocher inférieur
         for i in range(-120, 121):
             for j in range(-120, 121):
-                positions.append((i, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j), j))
+                positions.append((i, j, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j)))
 
         # Rectangles extérieurs inférieurs
  
         for i in range(120, 151):
             for j in range(-120, 121):
-                positions.append((i, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j), j))
+                positions.append((i, j, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j)))
 
         longueur_petit_rectangles = len(positions)
         
         for i in range(-150, -119):
             for j in range(-120, 121):
-                positions.append((i, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j), j))
+                positions.append((i, j, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j)))
 
         for i in range(-120, 121):
             for j in range(-150, -119):
-                positions.append((i, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j), j))
+                positions.append((i, j, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j)))
 
         for i in range(-120, 121):
             for j in range(120, 151):
-                positions.append((i, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j), j))
+                positions.append((i, j, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j)))
         
         # Coins inférieurs
                 
-        positions.append((120, -30, 120))
+        positions.append((120, 120, -30))
         for i in range(20):
-            positions.append((120 + 30 * np.cos(2 * np.pi * i / 40), -30, 120 + 30 * np.sin(2 * np.pi * i / 40)))
-            positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), -30, 120 + 30 * np.sin(2 * np.pi * (i + 1) / 40)))
+            positions.append((120 + 30 * np.cos(2 * np.pi * i / 40), 120 + 30 * np.sin(2 * np.pi * i / 40), -30))
+            positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), 120 + 30 * np.sin(2 * np.pi * (i + 1) / 40), -30))
 
-        positions.append((-120, -30, 120))
+        positions.append((-120, 120, -30))
         for i in range(20):
-            positions.append((-120 + 30 * np.cos(2 * np.pi * (i + 20) / 40), -30, 120 - 30 * np.sin(2 * np.pi * (i + 20) / 40)))
-            positions.append((-120 + 30 * np.cos(2 * np.pi * (i + 20 + 1) / 40), -30, 120 - 30 * np.sin(2 * np.pi * (i + 20 + 1) / 40)))
+            positions.append((-120 + 30 * np.cos(2 * np.pi * (i + 20) / 40), 120 - 30 * np.sin(2 * np.pi * (i + 20) / 40), -30))
+            positions.append((-120 + 30 * np.cos(2 * np.pi * (i + 20 + 1) / 40), 120 - 30 * np.sin(2 * np.pi * (i + 20 + 1) / 40), -30))
 
-        positions.append((-120,-30, -120))
+        positions.append((-120, -120, -30))
         for i in range(20):
-            positions.append((-120 - 30 * np.cos(2 * np.pi * i / 40), -30, -120 - 30 * np.sin(2 * np.pi * i / 40)))
-            positions.append((-120 - 30 * np.cos(2 * np.pi * (i + 1) / 40), -30, -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40)))
+            positions.append((-120 - 30 * np.cos(2 * np.pi * i / 40), -120 - 30 * np.sin(2 * np.pi * i / 40), -30))
+            positions.append((-120 - 30 * np.cos(2 * np.pi * (i + 1) / 40), -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40), -30))
 
-        positions.append((120, -30, -120))
+        positions.append((120, -120, -30))
         for i in range(20):
-            positions.append((120 + 30 * np.cos(2 * np.pi * i / 40), -30, -120 - 30 * np.sin(2 * np.pi * i / 40)))
-            positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), -30, -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40)))
+            positions.append((120 + 30 * np.cos(2 * np.pi * i / 40), -120 - 30 * np.sin(2 * np.pi * i / 40), -30))
+            positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40), -30))
         
         scaled = 100 * np.array(positions, np.float32)
         indices = []
         for i in range(300):
             for j in range(300):
                 indices.append(i*301+j)
+                indices.append((i+1)*301+j+1)
                 indices.append(i*301+j+1)
-                indices.append((i+1)*301+j+1)
                 indices.append(i*301+j)
-                indices.append((i+1)*301+j+1)
                 indices.append((i+1)*301+j)
+                indices.append((i+1)*301+j+1)
 
         # Rectangles extérieurs supérieurs
 
         for i in range(30):
             for j in range(300):
                 indices.append(longueur_base + i*301+j)
+                indices.append(longueur_base + (i+1)*301+j+1)
                 indices.append(longueur_base + i*301+j+1)
-                indices.append(longueur_base + (i+1)*301+j+1)
                 indices.append(longueur_base + i*301+j)
-                indices.append(longueur_base + (i+1)*301+j+1)
                 indices.append(longueur_base + (i+1)*301+j)
+                indices.append(longueur_base + (i+1)*301+j+1)
 
         longueur_base += longueur_rectangle
         for i in range(30):
             for j in range(300):
                 indices.append(longueur_base + i*301+j)
+                indices.append(longueur_base + (i+1)*301+j+1)
                 indices.append(longueur_base + i*301+j+1)
-                indices.append(longueur_base + (i+1)*301+j+1)
                 indices.append(longueur_base + i*301+j)
-                indices.append(longueur_base + (i+1)*301+j+1)
                 indices.append(longueur_base + (i+1)*301+j)
+                indices.append(longueur_base + (i+1)*301+j+1)
 
         longueur_base += longueur_rectangle
         for i in range(300):
             for j in range(30):
                 indices.append(longueur_base + i*31+j)
+                indices.append(longueur_base + (i+1)*31+j+1)
                 indices.append(longueur_base + i*31+j+1)
-                indices.append(longueur_base + (i+1)*31+j+1)
                 indices.append(longueur_base + i*31+j)
-                indices.append(longueur_base + (i+1)*31+j+1)
                 indices.append(longueur_base + (i+1)*31+j)
+                indices.append(longueur_base + (i+1)*31+j+1)
 
         longueur_base += longueur_rectangle
         for i in range(300):
             for j in range(30):
                 indices.append(longueur_base + i*31+j)
+                indices.append(longueur_base + (i+1)*31+j+1)
                 indices.append(longueur_base + i*31+j+1)
-                indices.append(longueur_base + (i+1)*31+j+1)
                 indices.append(longueur_base + i*31+j)
-                indices.append(longueur_base + (i+1)*31+j+1)
                 indices.append(longueur_base + (i+1)*31+j)
+                indices.append(longueur_base + (i+1)*31+j+1)
 
         # Coins supérieurs
         longueur_base += longueur_rectangle
         for i in range(20):
             indices.append(longueur_base)
-            indices.append(longueur_base + i+1)
             indices.append(longueur_base + i)
+            indices.append(longueur_base + i+1)
 
         longueur_base += 41
         for i in range(20):
             indices.append(longueur_base)
-            indices.append(longueur_base + i)
             indices.append(longueur_base + i+1)
+            indices.append(longueur_base + i)
         
         longueur_base += 41
         for i in range(20):
             indices.append(longueur_base)
-            indices.append(longueur_base + i+1)
             indices.append(longueur_base + i)
+            indices.append(longueur_base + i+1)
 
         longueur_base += 41
         for i in range(20):
             indices.append(longueur_base)
-            indices.append(longueur_base + i)
             indices.append(longueur_base + i+1)
-        
-        longueur_base += 41
-        for i in range(20):
-            indices.append(longueur_base + i)
-            indices.append(longueur_base + i - 164)
-            indices.append(longueur_base + i + 1 - 164)
-            indices.append(longueur_base + i + 1 - 164)
-            indices.append(longueur_base + i + 1)
-            indices.append(longueur_base + i)
-
-        longueur_base += 41
-        for i in range(20):
-            indices.append(longueur_base + i)
-            indices.append(longueur_base + i + 1 - 164)
-            indices.append(longueur_base + i - 164)
-            indices.append(longueur_base + i + 1)
-            indices.append(longueur_base + i + 1 - 164)
-            indices.append(longueur_base + i)
-
-        longueur_base += 41
-        for i in range(20):
-            indices.append(longueur_base + i)
-            indices.append(longueur_base + i - 164)
-            indices.append(longueur_base + i + 1 - 164)
-            indices.append(longueur_base + i + 1 - 164)
-            indices.append(longueur_base + i + 1)
             indices.append(longueur_base + i)
         
         longueur_base += 41
@@ -333,14 +306,59 @@ class Floor(Textured):
             indices.append(longueur_base + i)
 
         longueur_base += 41
+        for i in range(20):
+            indices.append(longueur_base + i)
+            indices.append(longueur_base + i - 164)
+            indices.append(longueur_base + i + 1 - 164)
+            indices.append(longueur_base + i + 1 - 164)
+            indices.append(longueur_base + i + 1)
+            indices.append(longueur_base + i)
 
+        longueur_base += 41
+        for i in range(20):
+            indices.append(longueur_base + i)
+            indices.append(longueur_base + i + 1 - 164)
+            indices.append(longueur_base + i - 164)
+            indices.append(longueur_base + i + 1)
+            indices.append(longueur_base + i + 1 - 164)
+            indices.append(longueur_base + i)
+        
+        longueur_base += 41
+        for i in range(20):
+            indices.append(longueur_base + i)
+            indices.append(longueur_base + i - 164)
+            indices.append(longueur_base + i + 1 - 164)
+            indices.append(longueur_base + i + 1 - 164)
+            indices.append(longueur_base + i + 1)
+            indices.append(longueur_base + i)
+
+        longueur_base += 41
+
+        for i in range(240):
+            indices.append(longueur_base + i)
+            indices.append(longueur_base + i + 1)
+            indices.append(longueur_base + i + 241)
+            indices.append(longueur_base + i + 241)
+            indices.append(longueur_base + i + 1)
+            indices.append(longueur_base + i + 1 + 241)
+
+        longueur_base += 241 * 2
+        for i in range(240):
+            indices.append(longueur_base + i)
+            indices.append(longueur_base + i + 1)
+            indices.append(longueur_base + i + 241)
+            indices.append(longueur_base + i + 241)
+            indices.append(longueur_base + i + 1)
+            indices.append(longueur_base + i + 1 + 241)
+
+        longueur_base += 241 * 2
         for i in range(240):
             indices.append(longueur_base + i)
             indices.append(longueur_base + i + 241)
             indices.append(longueur_base + i + 1)
+            indices.append(longueur_base + i + 1 + 241)
             indices.append(longueur_base + i + 1)
             indices.append(longueur_base + i + 241)
-            indices.append(longueur_base + i + 1 + 241)
 
         longueur_base += 241 * 2
         for i in range(240):
@@ -350,34 +368,16 @@ class Floor(Textured):
             indices.append(longueur_base + i + 1)
             indices.append(longueur_base + i + 241)
             indices.append(longueur_base + i + 1 + 241)
-
-        longueur_base += 241 * 2
-        for i in range(240):
-            indices.append(longueur_base + i)
-            indices.append(longueur_base + i + 1)
-            indices.append(longueur_base + i + 241)
-            indices.append(longueur_base + i + 1)
-            indices.append(longueur_base + i + 1 + 241)
-            indices.append(longueur_base + i + 241)
-
-        longueur_base += 241 * 2
-        for i in range(240):
-            indices.append(longueur_base + i)
-            indices.append(longueur_base + i + 1)
-            indices.append(longueur_base + i + 241)
-            indices.append(longueur_base + i + 1)
-            indices.append(longueur_base + i + 1 + 241)
-            indices.append(longueur_base + i + 241)
         longueur_base += 241 * 2
 
         for i in range(240):
             for j in range(240):
                 indices.append(longueur_base + i*241+j)
-                indices.append(longueur_base + (i+1)*241+j+1)
                 indices.append(longueur_base + i*241+j+1)
-                indices.append(longueur_base + i*241+j)
-                indices.append(longueur_base + (i+1)*241+j)
                 indices.append(longueur_base + (i+1)*241+j+1)
+                indices.append(longueur_base + i*241+j)
+                indices.append(longueur_base + (i+1)*241+j+1)
+                indices.append(longueur_base + (i+1)*241+j)
 
         longueur_base += 241 * 241
         longueur_petit_rectangles -= longueur_base
@@ -387,67 +387,67 @@ class Floor(Textured):
         for i in range(30):
             for j in range(240):
                 indices.append(longueur_base + i*241+j)
-                indices.append(longueur_base + (i+1)*241+j+1)
                 indices.append(longueur_base + i*241+j+1)
-                indices.append(longueur_base + i*241+j)
+                indices.append(longueur_base + (i+1)*241+j+1)
                 indices.append(longueur_base + (i+1)*241+j)
+                indices.append(longueur_base + i*241+j)
                 indices.append(longueur_base + (i+1)*241+j+1)
 
         longueur_base += longueur_petit_rectangles
         for i in range(30):
             for j in range(240):
-                indices.append(longueur_base + i*241+j)
                 indices.append(longueur_base + (i+1)*241+j+1)
+                indices.append(longueur_base + i*241+j)
                 indices.append(longueur_base + i*241+j+1)
-                indices.append(longueur_base + i*241+j)
                 indices.append(longueur_base + (i+1)*241+j)
+                indices.append(longueur_base + i*241+j)
                 indices.append(longueur_base + (i+1)*241+j+1)
 
         longueur_base += longueur_petit_rectangles
         for i in range(240):
             for j in range(30):
                 indices.append(longueur_base + i*31+j)
-                indices.append(longueur_base + (i+1)*31+j+1)
                 indices.append(longueur_base + i*31+j+1)
-                indices.append(longueur_base + i*31+j)
-                indices.append(longueur_base + (i+1)*31+j)
                 indices.append(longueur_base + (i+1)*31+j+1)
+                indices.append(longueur_base + i*31+j)
+                indices.append(longueur_base + (i+1)*31+j+1)
+                indices.append(longueur_base + (i+1)*31+j)
 
         longueur_base += longueur_petit_rectangles
         for i in range(240):
             for j in range(30):
                 indices.append(longueur_base + i*31+j)
-                indices.append(longueur_base + (i+1)*31+j+1)
                 indices.append(longueur_base + i*31+j+1)
-                indices.append(longueur_base + i*31+j)
-                indices.append(longueur_base + (i+1)*31+j)
                 indices.append(longueur_base + (i+1)*31+j+1)
+                indices.append(longueur_base + i*31+j)
+                indices.append(longueur_base + (i+1)*31+j+1)
+                indices.append(longueur_base + (i+1)*31+j)
 
         longueur_base += longueur_petit_rectangles
 
         # Coins inférieurs
         for i in range(20):
             indices.append(longueur_base)
-            indices.append(longueur_base + i)
             indices.append(longueur_base + i+1)
+            indices.append(longueur_base + i)
 
         longueur_base += 41
         for i in range(20):
             indices.append(longueur_base)
-            indices.append(longueur_base + i+1)
             indices.append(longueur_base + i)
+            indices.append(longueur_base + i+1)
         
         longueur_base += 41
         for i in range(20):
             indices.append(longueur_base)
-            indices.append(longueur_base + i)
             indices.append(longueur_base + i+1)
+            indices.append(longueur_base + i)
 
         longueur_base += 41
         for i in range(20):
             indices.append(longueur_base)
-            indices.append(longueur_base + i+1)
             indices.append(longueur_base + i)
+            indices.append(longueur_base + i+1)
         
         longueur_base += 41
 
@@ -564,7 +564,7 @@ def main():
     if len(sys.argv) != 2:
         print(
             'Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in format supported by assimp.' % (sys.argv[0],))
-        viewer.add(TexturedPlane(shader, "grass.png", "flowers.png"))
+        viewer.add(Floor(shader, "grass.png", "flowers.png"))
 
     # start rendering loop
     viewer.run()
