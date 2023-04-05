@@ -8,6 +8,12 @@ from core import Shader, Viewer, Mesh, load
 from texture import Texture, Textured, TextureCubeMap
 from PIL import Image               # load texture maps
 from transform import compute_normals
+from math import Math
+from perlin_noise import PerlinNoise
+
+noise1 = PerlinNoise(octaves=3)
+noise2 = PerlinNoise(octaves=6)
+noise3 = PerlinNoise(octaves=12)
 
 # -------------- Example textured plane class ---------------------------------
 
