@@ -6,7 +6,6 @@ import glfw                         # lean window system wrapper for OpenGL
 import numpy as np                  # all matrix manipulations & OpenGL args
 from core import Shader, Viewer, Mesh, load
 from texture import Texture, Textured, TextureCubeMap
-from PIL import Image               # load texture maps
 from transform import compute_normals
 
 # -------------- Example textured plane class ---------------------------------

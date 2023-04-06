@@ -1,3 +1,5 @@
+"""Core file implementing the viewer but also the Shader, Node, VertexArray classes."""
+
 # Python built-in modules
 import os                           # os function, i.e. checking file status
 from itertools import cycle         # allows easy circular choice list
@@ -11,7 +13,8 @@ import numpy as np                  # all matrix manipulations & OpenGL args
 import assimpcy                     # 3D resource loader
 
 # our transform functions
-from transform import Camera, identity
+from transform import identity
+from camera import Camera
 
 # initialize and automatically terminate glfw on exit
 glfw.init()
@@ -389,15 +392,17 @@ class Viewer(Node):
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
                 # Hide the cursor
-                glfw.set_input_mode(self.win, glfw.CURSOR, glfw.CURSOR_DISABLED)
+                glfw.set_input_mode(self.win, glfw.CURSOR,
+                                    glfw.CURSOR_DISABLED)
+
 
                 win_size = glfw.get_window_size(self.win)
 
                 # draw our scene objects
-                self.draw(view=self.camera.GetViewMatrix(),
-                        projection=self.camera.projection_matrix(win_size),
-                        model=identity(),
-                        w_camera_position=self.camera.camera_position())
+                self.draw(view=self.camera.get_view_matrix(),
+                          projection=self.camera.projection_matrix(win_size),
+                          model=identity(),
+                          w_camera_position=self.camera.camera_position())
 
                 # flush render commands, and swap draw buffers
                 glfw.swap_buffers(self.win)
@@ -408,36 +413,34 @@ class Viewer(Node):
 
     def on_key(self, win, key, _scancode, action, _mods):
         """ 'Q' or 'Escape' quits """
-        if action == glfw.PRESS or action == glfw.REPEAT:
+        if action == glfw.PRESS:
             if key == glfw.KEY_ESCAPE or key == glfw.KEY_Q:
                 glfw.set_window_should_close(self.win, True)
             if key == glfw.KEY_Z:
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, next(self.fill_modes))
             if key == glfw.KEY_SPACE:
                 glfw.set_time(0.0)
-            if key in (glfw.KEY_W,glfw.KEY_A,glfw.KEY_S,glfw.KEY_D):
-                self.camera.ProcessMouvement(win)
+            if key in (glfw.KEY_W, glfw.KEY_A, glfw.KEY_S, glfw.KEY_D, glfw.KEY_SPACE, glfw.KEY_C):
+                self.camera.process_mouvement(win)
 
             # call Node.key_handler which calls key_handlers for all drawables
             self.key_handler(key)
 
-    def on_mouse_move(self, win, xpos, ypos):
+    def on_mouse_move(self, _win, xpos, ypos):
         """ Rotate on left-click & drag, pan on right-click & drag """
-        if (self.first_mouse):
+        if self.first_mouse:
             self.mouse = (xpos, ypos)
             self.first_mouse = False
 
-        sensitivity = 0.1
-        xoffset = (xpos - self.mouse[0]) * sensitivity
-        yoffset = (self.mouse[1] - ypos) * sensitivity
+        xoffset = xpos - self.mouse[0]
+        yoffset = self.mouse[1] - ypos
+        self.camera.process_mouse_movement(xoffset, yoffset)
         self.mouse = (xpos, ypos)
-        self.camera.ProcessMouseMovement(xoffset, yoffset)
 
-
-    def on_scroll(self, win, _deltax, deltay):
+    def on_scroll(self, _win, _deltax, deltay):
         """ Scroll controls the camera distance to trackball center """
         # self.trackball.zoom(deltay, glfw.get_window_size(win)[1])
-        self.camera.ProcessMouseScroll(-deltay)
+        self.camera.process_mouse_scroll(deltay)
 
     def on_size(self, _win, _width, _height):
         """ window size update => update viewport to new framebuffer size """

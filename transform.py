@@ -5,9 +5,6 @@ Quaternion, graphics 4x4 matrices, and vector utilities.
 @author: franco
 """
 # Python built-in modules
-import numpy as np
-import OpenGL.GL as GL              # standard Python OpenGL wrapper
-import glfw                         # lean window system wrapper for OpenGL
 import math                 # mainly for trigonometry functions
 from numbers import Number  # useful to check type of arg: scalar or vector?
 
@@ -195,7 +192,7 @@ class Trackball:
 
     def __init__(self, yaw=0., roll=0., pitch=270., distance=3., radians=None):
         """ Build a new trackball with specified view, angles in degrees """
-        self.rotation = quaternion_from_euler(yaw, roll, pitch, radians)
+        self.rotation = quaternion_from_euler(yaw, pitch, roll, radians)
         self.distance = max(distance, 0.001)
         self.pos2d = vec(0.0, -2.0)
 
@@ -219,7 +216,7 @@ class Trackball:
     def projection_matrix(self, winsize):
         """ Projection matrix with z-clipping range adaptive to distance """
         z_range = vec(0.1, 100) * self.distance  # proportion to dist
-        return perspective(35, winsize[0] / winsize[1], *z_range)
+        return perspective(90, winsize[0] / winsize[1], *z_range)
 
     def matrix(self):
         """ Rotational component of trackball position """
@@ -236,84 +233,3 @@ class Trackball:
         old, new = (normalized(self._project3d(pos)) for pos in (old, new))
         phi = 2 * math.acos(np.clip(np.dot(old, new), -1, 1))
         return quaternion_from_axis_angle(np.cross(old, new), radians=phi)
-
-
-class Camera:
-    """New camera class because apparently trackball wasn't... good enough :P"""
-
-    def __init__(self):
-        # camera Attributes
-        self.position = vec(-3.0, 0.0, 3.0)
-        self.front = vec(0.0, 0.0, 0.0)
-        self.up = vec(0.0, 0.0, 0.0)
-        self.right = vec(0.0, 0.0, 0.0)
-        self.worldUp = vec(0.0, 0.0, 1.0)
-        # euler Angles
-        self.yaw = 0
-        self.pitch = 0
-        # camera options
-        self.movementSpeed = 1
-        self.mouseSensitivity = 0.75
-        self.zoom = 50
-        self.updateCameraVectors()
-
-    def camera_position(self):
-        """Returns the camera position"""
-        return self.position
-
-    def GetViewMatrix(self):
-        """Returns the view matrix"""
-        return lookat(self.position, self.position + self.front, self.up)
-
-    def projection_matrix(self, win_size):
-        """Returns the projection matrix"""
-        return perspective(self.zoom, win_size[0] / win_size[1], 0.1, 1000)
-
-    def ProcessMouvement(self, win):
-        """Allows the camera translate"""
-        if glfw.get_key(win, glfw.KEY_W):
-            self.position += self.front * self.movementSpeed
-        if glfw.get_key(win, glfw.KEY_S):
-            self.position -= self.front * self.movementSpeed
-        if glfw.get_key(win, glfw.KEY_A):
-            self.position -= self.right * self.movementSpeed
-        if glfw.get_key(win, glfw.KEY_D):
-            self.position += self.right * self.movementSpeed
-
-    def ProcessMouseMovement(self, xoffset, yoffset, constrainPitch=True):
-        """Allows the camera to rotate around"""
-        xoffset *= self.mouseSensitivity
-        yoffset *= self.mouseSensitivity
-
-        self.yaw += xoffset
-        self.pitch += yoffset
-
-        # make sure that when pitch is out of bounds, screen doesn't get flipped
-        if constrainPitch:
-            if self.pitch > 90:
-                self.pitch = 90
-            if self.pitch < -90:
-                self.pitch = -90
-
-        # update Front, Right and Up Vectors using the updated Euler angles
-        self.updateCameraVectors()
-
-    def ProcessMouseScroll(self, yoffset):
-        """Zoom effect using mouse scroll"""
-        self.zoom -= float(yoffset)
-        if self.zoom < 1.0:
-            self.zoom = 1.0
-        if self.zoom > 50.0:
-            self.zoom = 50.0
-
-    def updateCameraVectors(self):
-        """Compute all the vectors after a rotation"""
-        # calculate the new Front vector
-        self.front = vec(
-            np.cos(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
-            -np.sin(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
-            np.sin(np.radians(self.pitch)))
-        self.front = normalized(self.front)
-        # also re-calculate the Right and Up vector
-        self.right = normalized(np.cross(self.front, self.worldUp))
-        self.up = normalized(np.cross(self.right, self.front))
