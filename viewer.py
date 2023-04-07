@@ -8,7 +8,7 @@ from core import Shader, Viewer, Mesh, load
 from skybox import Skybox
 from texture import Texture, Textured
 import math as Math
-from perlin_noise import PerlinNoise
+from perlin_noise import PerlinNoise # pip install perlin-noise
 
 
 noise1 = PerlinNoise(octaves=3)
@@ -509,11 +509,11 @@ def main():
 
     viewer.add(Skybox(skybox_shader, ["cubemaps/right.png", "cubemaps/left.png",
                                       "cubemaps/top.png", "cubemaps/bottom.png", "cubemaps/front.png", "cubemaps/back.png"]))
-
+    viewer.add(TexturedPlane(shader, "grass.png", "flowers.png"))
     if len(sys.argv) != 2:
         print(
             'Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in format supported by assimp.' % (sys.argv[0],))
-        viewer.add(Floor(shader, "grass.png", "flowers.png"))
+        # viewer.add(Floor(shader, "grass.png", "flowers.png"))
 
     # start rendering loop
     viewer.run()

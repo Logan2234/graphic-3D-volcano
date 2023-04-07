@@ -14,7 +14,7 @@ import assimpcy                     # 3D resource loader
 
 # our transform functions
 from transform import identity
-from camera import Camera
+from camera import CAMERA_NORMAL_MOVE, CAMERA_PAN_MOVE, CAMERA_ROTATE_MOVE, Camera
 
 # initialize and automatically terminate glfw on exit
 glfw.init()
@@ -413,7 +413,7 @@ class Viewer(Node):
 
     def on_key(self, win, key, _scancode, action, _mods):
         """ 'Q' or 'Escape' quits """
-        if action == glfw.PRESS:
+        if action == glfw.PRESS or action == glfw.REPEAT:
             if key == glfw.KEY_ESCAPE or key == glfw.KEY_Q:
                 glfw.set_window_should_close(self.win, True)
             if key == glfw.KEY_Z:
@@ -426,7 +426,7 @@ class Viewer(Node):
             # call Node.key_handler which calls key_handlers for all drawables
             self.key_handler(key)
 
-    def on_mouse_move(self, _win, xpos, ypos):
+    def on_mouse_move(self, win, xpos, ypos):
         """ Rotate on left-click & drag, pan on right-click & drag """
         if self.first_mouse:
             self.mouse = (xpos, ypos)
@@ -434,7 +434,14 @@ class Viewer(Node):
 
         xoffset = xpos - self.mouse[0]
         yoffset = self.mouse[1] - ypos
-        self.camera.process_mouse_movement(xoffset, yoffset)
+        
+        if glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_LEFT):
+            self.camera.process_mouse_movement(xoffset, yoffset, CAMERA_ROTATE_MOVE)
+        elif glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_RIGHT):
+            self.camera.process_mouse_movement(xoffset, yoffset, CAMERA_PAN_MOVE)
+        else:
+            self.camera.process_mouse_movement(xoffset, yoffset, CAMERA_NORMAL_MOVE)
+
         self.mouse = (xpos, ypos)
 
     def on_scroll(self, _win, _deltax, deltay):

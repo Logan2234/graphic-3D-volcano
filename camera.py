@@ -4,6 +4,9 @@ import numpy as np
 import glfw                         # lean window system wrapper for OpenGL
 from transform import lookat, normalized, perspective, vec
 
+CAMERA_NORMAL_MOVE = 0
+CAMERA_ROTATE_MOVE = 1
+CAMERA_PAN_MOVE = 2
 
 class Camera:
     """New camera class because apparently trackball wasn't... good enough :P"""
@@ -51,11 +54,21 @@ class Camera:
         if glfw.get_key(win, glfw.KEY_C):
             self.position -= self.world_up * self.movement_speed
 
-    def process_mouse_movement(self, xoffset, yoffset, constrain_pitch=True):
+    def process_mouse_movement(self, xoffset, yoffset, move_mode, constrain_pitch=True):
         """Allows the camera to rotate around"""
+        # if (move_mode == 1):
+            # old, new = ((2*vec(pos) - winsize) / winsize for pos in (old, new))
+            # self.rotation = quaternion_mul(self._rotate(old, new), self.rotation)
+            # TODO
+            # return
+
         xoffset *= self.mouse_sensitivity
         yoffset *= self.mouse_sensitivity
 
+        if move_mode == 2:
+            self.position = np.add(self.position, vec(-xoffset*np.sin(np.radians(self.yaw)), -xoffset*np.cos(np.radians(self.yaw)), yoffset))
+            return
+        
         self.yaw += xoffset
         self.pitch += yoffset
 
