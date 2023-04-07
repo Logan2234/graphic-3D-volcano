@@ -1,3 +1,4 @@
+"""Camera module redefining our own camera"""
 
 import numpy as np
 import glfw                         # lean window system wrapper for OpenGL
