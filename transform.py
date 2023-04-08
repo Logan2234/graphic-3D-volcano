@@ -40,6 +40,8 @@ def compute_normals(base_coords, indices):
     return np.array(normals, np.float32)
 
 # Typical 4x4 matrix utilities for OpenGL ------------------------------------
+
+
 def identity():
     """ 4x4 identity matrix """
     return np.identity(4, 'f')
@@ -188,11 +190,11 @@ def quaternion_slerp(q0, q1, fraction):
 class Trackball:
     """Virtual trackball for 3D scene viewing. Independent of window system."""
 
-    def __init__(self, yaw=0., roll=0., pitch=0., distance=3., radians=None):
+    def __init__(self, yaw=0., roll=0., pitch=270., distance=3., radians=None):
         """ Build a new trackball with specified view, angles in degrees """
-        self.rotation = quaternion_from_euler(yaw, roll, pitch, radians)
+        self.rotation = quaternion_from_euler(yaw, pitch, roll, radians)
         self.distance = max(distance, 0.001)
-        self.pos2d = vec(0.0, 0.0)
+        self.pos2d = vec(0.0, -2.0)
 
     def drag(self, old, new, winsize):
         """ Move trackball from old to new 2d normalized window position """
@@ -214,7 +216,7 @@ class Trackball:
     def projection_matrix(self, winsize):
         """ Projection matrix with z-clipping range adaptive to distance """
         z_range = vec(0.1, 100) * self.distance  # proportion to dist
-        return perspective(35, winsize[0] / winsize[1], *z_range)
+        return perspective(90, winsize[0] / winsize[1], *z_range)
 
     def matrix(self):
         """ Rotational component of trackball position """

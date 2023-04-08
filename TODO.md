@@ -7,7 +7,7 @@
 
 ## Modélisation
 
-- Au moins un élément généré procéduralement: le sol
+- Au moins un élément généré procéduralement: le sol, le volcan
 - Élément hiérarchique: Arbres, plantes, etc
 
 ## Rendering
@@ -15,7 +15,7 @@
 - Lumière
 - Textures
 - ~~Fog effect~~
-- Skybox
+- ~~Skybox~~
 - Particle system: vapeur (lave en contact avec l'eau), reflexion de l'eau
 
 ## Animation
@@ -26,4 +26,5 @@
 
 ## Un autre élément externe à la liste
 
-- A trouver
+- A trouver:
+- ~~Class Caméra~~

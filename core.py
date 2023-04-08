@@ -1,7 +1,10 @@
+"""Core file implementing the viewer but also the Shader, Node, VertexArray classes."""
+
 # Python built-in modules
 import os                           # os function, i.e. checking file status
 from itertools import cycle         # allows easy circular choice list
-import atexit                       # launch a function at exit
+import atexit
+import time                       # launch a function at exit
 
 # External, non built-in modules
 import OpenGL.GL as GL              # standard Python OpenGL wrapper
@@ -10,7 +13,8 @@ import numpy as np                  # all matrix manipulations & OpenGL args
 import assimpcy                     # 3D resource loader
 
 # our transform functions
-from transform import Trackball, identity
+from transform import identity
+from camera import CAMERA_NORMAL_MOVE, CAMERA_PAN_MOVE, CAMERA_ROTATE_MOVE, Camera
 
 # initialize and automatically terminate glfw on exit
 glfw.init()
@@ -59,7 +63,8 @@ class Shader:
         get_name = {int(k): str(k).split()[0] for k in self.GL_SETTERS.keys()}
         for var in range(GL.glGetProgramiv(self.glid, GL.GL_ACTIVE_UNIFORMS)):
             name, size, type_ = GL.glGetActiveUniform(self.glid, var)
-            name = name.decode().split('[')[0]   # remove array characterization
+            # remove array characterization
+            name = name.decode().split('[')[0]
             args = [GL.glGetUniformLocation(self.glid, name), size]
             # add transpose=True as argument for matrix types
             if type_ in {GL.GL_FLOAT_MAT2, GL.GL_FLOAT_MAT3, GL.GL_FLOAT_MAT4}:
@@ -97,6 +102,7 @@ class Shader:
 
 class VertexArray:
     """ helper class to create and self destroy OpenGL vertex array objects."""
+
     def __init__(self, shader, attributes, index=None, usage=GL.GL_STATIC_DRAW):
         """ Vertex array from attributes and optional index array. Vertex
             Attributes should be list of arrays with one row per vertex. """
@@ -118,7 +124,8 @@ class VertexArray:
                 GL.glEnableVertexAttribArray(loc)
                 GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.buffers[name])
                 GL.glBufferData(GL.GL_ARRAY_BUFFER, data, usage)
-                GL.glVertexAttribPointer(loc, size, GL.GL_FLOAT, False, 0, None)
+                GL.glVertexAttribPointer(
+                    loc, size, GL.GL_FLOAT, False, 0, None)
 
         # optionally create and upload an index buffer for this object
         self.draw_command = GL.glDrawArrays
@@ -139,10 +146,9 @@ class VertexArray:
         for name, data in attributes.items():
             GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.buffers[name])
             GL.glBufferSubData(GL.GL_ARRAY_BUFFER, 0, data)
-
         GL.glBindVertexArray(self.glid)
         self.draw_command(primitive, *self.arguments)
-
+        
     def __del__(self):  # object dies => kill GL array and buffers from GPU
         GL.glDeleteVertexArrays(1, [self.glid])
         GL.glDeleteBuffers(len(self.buffers), list(self.buffers.values()))
@@ -151,6 +157,7 @@ class VertexArray:
 # ------------  Mesh is the core drawable -------------------------------------
 class Mesh:
     """ Basic mesh class, attributes and uniforms passed as arguments """
+
     def __init__(self, shader, attributes, index=None,
                  usage=GL.GL_STATIC_DRAW, **uniforms):
         self.shader = shader
@@ -162,10 +169,10 @@ class Mesh:
         self.shader.set_uniforms({**self.uniforms, **uniforms})
         self.vertex_array.execute(primitives, attributes)
 
-
 # ------------  Node is the core drawable for hierarchical scene graphs -------
 class Node:
     """ Scene graph transform and parameter broadcast node """
+
     def __init__(self, children=(), transform=identity()):
         self.transform = transform
         self.world_transform = identity()
@@ -223,11 +230,12 @@ def load(file, shader, tex_file=None, **params):
         if tex_file:
             tfile = tex_file
         elif 'TEXTURE_BASE' in mat.properties:  # texture token
-            name = mat.properties['TEXTURE_BASE'].split('/')[-1].split('\\')[-1]
+            name = mat.properties['TEXTURE_BASE'].split(
+                '/')[-1].split('\\')[-1]
             # search texture in file's whole subdir since path often screwed up
             paths = os.walk(path, followlinks=True)
             tfile = next((os.path.join(d, f) for d, _, n in paths for f in n
-                     if name.startswith(f) or f.startswith(name)), None)
+                          if name.startswith(f) or f.startswith(name)), None)
             assert tfile, 'Cannot find texture %s in %s subtree' % (name, path)
         else:
             tfile = None
@@ -348,9 +356,11 @@ class Viewer(Node):
         # make win's OpenGL context current; no OpenGL calls can happen before
         glfw.make_context_current(self.win)
 
-        # initialize trackball
-        self.trackball = Trackball()
-        self.mouse = (0, 0)
+        self.camera = Camera()
+        windows_size = glfw.get_window_size(self.win)
+        self.mouse = (windows_size[0]/2, windows_size[1]/2)
+        self.first_mouse = True
+        self.limit_fps = True
 
         # register event handlers
         glfw.set_key_callback(self.win, self.on_key)
@@ -373,50 +383,73 @@ class Viewer(Node):
 
     def run(self):
         """ Main render loop for this OpenGL window """
+        last_time = time.time()
         while not glfw.window_should_close(self.win):
-            # clear draw buffer and depth buffer (<-TP2)
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+            if (self.limit_fps and time.time() - last_time > 1/60):
+                # clear draw buffer and depth buffer (<-TP2)
+                GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
-            win_size = glfw.get_window_size(self.win)
+                # Hide the cursor
+                glfw.set_input_mode(self.win, glfw.CURSOR,
+                                    glfw.CURSOR_DISABLED)
 
-            # draw our scene objects
-            cam_pos = np.linalg.inv(self.trackball.view_matrix())[:, 3]
-            self.draw(view=self.trackball.view_matrix(),
-                      projection=self.trackball.projection_matrix(win_size),
-                      model=identity(),
-                      w_camera_position=cam_pos)
+                win_size = glfw.get_window_size(self.win)
 
-            # flush render commands, and swap draw buffers
-            glfw.swap_buffers(self.win)
+                # draw our scene objects
+                self.draw(view=self.camera.get_view_matrix(),
+                          projection=self.camera.projection_matrix(win_size),
+                          model=identity(),
+                          w_camera_position=self.camera.camera_position(), 
+                          time=glfw.get_time(), 
+                          resolution=win_size)
 
-            # Poll for and process events
-            glfw.poll_events()
+                # flush render commands, and swap draw buffers
+                glfw.swap_buffers(self.win)
 
-    def on_key(self, _win, key, _scancode, action, _mods):
+                # Poll for and process events
+                glfw.poll_events()
+                last_time = time.time()
+
+    def on_key(self, win, key, _scancode, action, _mods):
         """ 'Q' or 'Escape' quits """
         if action == glfw.PRESS or action == glfw.REPEAT:
             if key == glfw.KEY_ESCAPE or key == glfw.KEY_Q:
                 glfw.set_window_should_close(self.win, True)
-            if key == glfw.KEY_W:
+            if key == glfw.KEY_Z:
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, next(self.fill_modes))
             if key == glfw.KEY_SPACE:
                 glfw.set_time(0.0)
+            if key in (glfw.KEY_W, glfw.KEY_A, glfw.KEY_S, glfw.KEY_D, glfw.KEY_SPACE, glfw.KEY_C):
+                self.camera.process_mouvement(win)
 
             # call Node.key_handler which calls key_handlers for all drawables
             self.key_handler(key)
 
     def on_mouse_move(self, win, xpos, ypos):
         """ Rotate on left-click & drag, pan on right-click & drag """
-        old = self.mouse
-        self.mouse = (xpos, glfw.get_window_size(win)[1] - ypos)
-        if glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_LEFT):
-            self.trackball.drag(old, self.mouse, glfw.get_window_size(win))
-        if glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_RIGHT):
-            self.trackball.pan(old, self.mouse)
+        if self.first_mouse:
+            self.mouse = (xpos, ypos)
+            self.first_mouse = False
 
-    def on_scroll(self, win, _deltax, deltay):
+        xoffset = xpos - self.mouse[0]
+        yoffset = self.mouse[1] - ypos
+
+        if glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_LEFT):
+            self.camera.process_mouse_movement(
+                xoffset, yoffset, CAMERA_ROTATE_MOVE)
+        elif glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_RIGHT):
+            self.camera.process_mouse_movement(
+                xoffset, yoffset, CAMERA_PAN_MOVE)
+        else:
+            self.camera.process_mouse_movement(
+                xoffset, yoffset, CAMERA_NORMAL_MOVE)
+
+        self.mouse = (xpos, ypos)
+
+    def on_scroll(self, _win, _deltax, deltay):
         """ Scroll controls the camera distance to trackball center """
-        self.trackball.zoom(deltay, glfw.get_window_size(win)[1])
+        # self.trackball.zoom(deltay, glfw.get_window_size(win)[1])
+        self.camera.process_mouse_scroll(deltay)
 
     def on_size(self, _win, _width, _height):
         """ window size update => update viewport to new framebuffer size """
