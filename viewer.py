@@ -13,6 +13,7 @@ from perlin_noise import PerlinNoise
 from transform import compute_normals  # pip install perlin-noise
 
 
+noise0 = PerlinNoise(octaves=1)
 noise1 = PerlinNoise(octaves=3)
 noise2 = PerlinNoise(octaves=6)
 noise3 = PerlinNoise(octaves=12)
@@ -577,30 +578,37 @@ class Floor(Textured):
         return Math.pow(e, puissance)
 
 
+def create_grid(size):
+    carre_de_base = np.array(
+        ((0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)))
+    indices_de_base = np.array(((0, 1, 2), (0, 2, 3)), np.uint32)
+    
+    positions = []
+    indices = []
+
+    for i in range(-size, size + 1):
+        for j in range(-size, size + 1):
+            for elemt in carre_de_base:
+                positions.append(np.add(elemt, (j, i, 0)))
+            indices.append(
+                np.add(indices_de_base[0], (4*(2*size+1)*(i+size) + 4*(j+size))))
+            indices.append(
+                np.add(indices_de_base[1], (4*(2*size+1)*(i+size) + 4*(j+size))))
+
+    return (positions, indices)
+
+
 class WaterPlane(Textured):
     """ Simple first textured object """
 
     def __init__(self, shader):
         # setup plane mesh to be textured
-        carre_de_base = np.array(
-            ((0, 0, 0), (0.25, 0, 0), (0.25, 0.25, 0), (0, 0.25, 0)))
-        indices_de_base = np.array(((0, 1, 2), (0, 2, 3)), np.uint32)
-        positions = []
-        indices = []
+
         self.shader = shader
         self.tex = Texture("water.jpg", GL.GL_REPEAT,
                            GL.GL_NEAREST, GL.GL_NEAREST)
-        TAILLE = 50
-        for i in range(-TAILLE, TAILLE + 1):
-            for j in range(-TAILLE, TAILLE + 1):
-                for elemt in carre_de_base:
-                    positions.append(np.add(elemt, (j*0.25, i*0.25, 0)))
-                indices.append(
-                    np.add(indices_de_base[0], (4*(2*TAILLE+1)*(i+TAILLE) + 4*(j+TAILLE))))
-                indices.append(
-                    np.add(indices_de_base[1], (4*(2*TAILLE+1)*(i+TAILLE) + 4*(j+TAILLE))))
-        self.positions = np.array(positions)
-        self.indices = np.array(indices)
+        
+        self.positions, self.indices = np.array(create_grid(50), dtype=tuple)
         self.normal = compute_normals(self.positions, self.indices)
         self.mesh = Mesh(shader, attributes=dict(position=self.positions, tex_coord=(
             (1, 1), (0, 1), (0, 0), (0, 1)), normal=self.normal), index=self.indices, usage=GL.GL_DYNAMIC_DRAW, )
