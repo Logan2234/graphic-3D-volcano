@@ -56,31 +56,29 @@ class Camera:
 
     def process_mouse_movement(self, xoffset, yoffset, move_mode, constrain_pitch=True):
         """Allows the camera to rotate around"""
-        # if (move_mode == 1):
-            # old, new = ((2*vec(pos) - winsize) / winsize for pos in (old, new))
-            # self.rotation = quaternion_mul(self._rotate(old, new), self.rotation)
-            # TODO
-            # return
-
         xoffset *= self.mouse_sensitivity
         yoffset *= self.mouse_sensitivity
 
-        if move_mode == 2:
-            self.position = np.add(self.position, vec(-xoffset*np.sin(np.radians(self.yaw)), -xoffset*np.cos(np.radians(self.yaw)), yoffset))
+        if move_mode == CAMERA_ROTATE_MOVE:
+        #     old, new = ((2*vec(pos) - winsize) / winsize for pos in (old, new))
+        #     self.rotation = quaternion_mul(self._rotate(old, new), self.rotation)
+        #     TODO
             return
-        
-        self.yaw += xoffset
-        self.pitch += yoffset
+        elif move_mode == CAMERA_PAN_MOVE:
+            self.position = np.add(self.position, vec(-xoffset*np.sin(np.radians(self.yaw)), -xoffset*np.cos(np.radians(self.yaw)), yoffset))
+        else:
+            self.yaw += xoffset
+            self.pitch += yoffset
 
-        # make sure that when pitch is out of bounds, screen doesn't get flipped
-        if constrain_pitch:
-            if self.pitch > 90:
-                self.pitch = 90
-            if self.pitch < -90:
-                self.pitch = -90
+            # make sure that when pitch is out of bounds, screen doesn't get flipped
+            if constrain_pitch:
+                if self.pitch > 90:
+                    self.pitch = 90
+                if self.pitch < -90:
+                    self.pitch = -90
 
-        # update Front, Right and Up Vectors using the updated Euler angles
-        self.update_camera_vectors()
+            # update Front, Right and Up Vectors using the updated Euler angles
+            self.update_camera_vectors()
 
     def process_mouse_scroll(self, yoffset):
         """Zoom effect using mouse scroll"""
