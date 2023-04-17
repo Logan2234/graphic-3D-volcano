@@ -11,7 +11,7 @@ import numpy as np                  # all matrix manipulations & OpenGL args
 import glfw                         # lean window system wrapper for OpenGL
 
 from core import Shader, Mesh, Viewer, Node, load
-from transform import translate, rotate, scale, identity, sincos, quaternion, quaternion_from_euler
+from transform import *
 
 from animation import KeyFrameControlNode, Skinned
 
@@ -31,90 +31,31 @@ class Leaf(Node):
         super().__init__()
         self.add(*load('leaf.obj', shader, tex_file = 'leaf.jpg'))  # just load leaf from file
 
-# class Cylinder(Node):
-#     """ Very simple cylinder based on provided load function """
-#     def __init__(self, shader):
-#         super().__init__()
-#         self.add(*load('cylinder.obj', shader, tex_file = 'wood.png'))  # just load cylinder from file
-# -------------- Deformable Cylinder Mesh  ------------------------------------
-class SkinnedCylinder(KeyFrameControlNode):
-    """ Deformable cylinder """
-    def __init__(self, shader, sections=11, quarters=20):
-
-        # this "arm" node and its transform serves as control node for bone 0
-        # we give it the default identity keyframe transform, doesn't move
-        super().__init__({0: (0, 0, 0)}, {0: quaternion()}, {0: 1})
-
-        # we add a son "forearm" node with animated rotation for the second
-        # part of the cylinder
-        self.add(KeyFrameControlNode(
-            {0: (0, 0, 0)},
-            {0: quaternion(), 2: quaternion_from_euler(90), 4: quaternion()},
-            {0: 1}))
-
-        # there are two bones in this animation corresponding to above noes
-        bone_nodes = [self, self.children[0]]
-
-        # these bones have no particular offset transform
-        bone_offsets = [identity(), identity()]
-
-        # vertices, per vertex bone_ids and weights
-        vertices, faces, bone_id, bone_weights = [], [], [], []
-        for x_c in range(sections+1):
-            for angle in range(quarters):
-                # compute vertex coordinates sampled on a cylinder
-                z_c, y_c = sincos(360 * angle / quarters)
-                vertices.append((x_c - sections/2, y_c, z_c))
-
-                bone_id.append((0, 1, 0, 0))
-
-                weight = np.clip(1-(2*x_c/sections-1/2), 0, 1)
-                bone_weights.append((weight, 1 - weight, 0, 0))
+class Cylinder(Node):
+    def __init__(self, shader):
+        
+        super().__init__()
+        self.add(*load('cylinder.obj', shader, tex_file = 'wood.png'))  # just load cylinder from file
 
 
-        # face indices
-        faces = []
-        for x_c in range(sections):
-            for angle in range(quarters):
-
-                # indices of the 4 vertices of the current quad, % helps
-                # wrapping to finish the circle sections
-                ir0c0 = x_c * quarters + angle
-                ir1c0 = (x_c + 1) * quarters + angle
-                ir0c1 = x_c * quarters + (angle + 1) % quarters
-                ir1c1 = (x_c + 1) * quarters + (angle + 1) % quarters
-
-                # add the 2 corresponding triangles per quad on the cylinder
-                faces.extend([(ir0c0, ir0c1, ir1c1), (ir0c0, ir1c1, ir1c0)])
-
-        # the skinned mesh itself. it doesn't matter where in the hierarchy
-        # this is added as long as it has the proper bone_node table
-        attributes = dict(position=vertices, normal=bone_weights,
-                          bone_ids=bone_id, bone_weights=bone_weights, tex_file = 'wood.png')
-        mesh = Mesh(shader, attributes=attributes, index=faces)
-        self.add(Skinned(mesh, bone_nodes, bone_offsets))
-
-
-class Tree(Node):
-    """ Hierchical element of the scene with a cylinder base, Round top with 3 leaves"""
+class AnimatedTree(Node):
+    """ Hierchical element of the scene taht will be animated"""
     def __init__(self):
         super().__init__()
 
-        # --------------- Creation of the tree --------------------------
-        cylinder = SkinnedCylinder(Shader("skinning.vert", "texture.frag"))
+        # ------------------------------ Constants used --------------------------
+        cylinder = Cylinder(Shader("texture.vert", "texture.frag"))
         leaf = Leaf(Shader("texture.vert", "texture.frag"))
 
-        # # --- make two long cylinders
-        # base_shape = Node(transform=scale((1,8,1)))
-        # base_shape.add(cylinder)
-
-        # second_cylinder = Node(transform=scale((1.5,8,1.5)))
-        # second_cylinder.add(cylinder)                    
-
-        base_shape = Node(transform=rotate((0,0,1),90) @ scale ((1.5,1,1)))
+        # --- Make two long cylinders
+        base_shape = Node(transform=scale((1,8,1)))
         base_shape.add(cylinder)
 
-        # --- make 4 leaves
+        second_cylinder = Node(transform=scale((1.5,8,1.5)))
+        second_cylinder.add(cylinder)   
+
+
+        # --- Make 4 leaves
         leaf_1 = Node(transform=scale((0.06,0.05,0.05))@(translate(-5041.9, 13,-1105)))
         leaf_1.add(leaf)    # the standard one
 
@@ -127,46 +68,84 @@ class Tree(Node):
         leaf_4 = Node(transform=scale((0.05,0.08,0.05))@(translate(-5041.9, 13,-1105)))
         leaf_4.add(leaf)    # a longer and bigger one
 
-        # --- hierarchy of the tree
+        # ------------------------ Animation of items ---------------------------
         phi2 = 90.0        # second leaf angle
         phi3 = 180.0         # ...
         phi4 = 270.0         # ...
 
-        transform_leaf4 = Node(transform=rotate((0,1,0), phi4))
-        transform_leaf4.add(leaf_4)
+        # --- For leaf 4
+        transform_leaf4 = Node(transform=rotate((0,1,0), phi4)@translate(0,7.2,0), children=[leaf_4])
+        translate_keys = {0: vec(0, 0, 0), 3: vec(0, -0.3, 0) , 5: vec(0,0,0)}
+        rotate_keys = {0: quaternion(), 2: quaternion_from_euler(0, -30, 0),
+                    3: quaternion_from_euler(0, 30, 0), 4: quaternion()}
+        scale_keys = {0: 1, 3:1, 5:1 }
+        animated_leaf4 = KeyFrameControlNode(translate_keys, rotate_keys, scale_keys)
+        animated_leaf4.add(transform_leaf4)
 
-        transform_leaf3 = Node(transform=rotate((0,1,0), phi3))
-        transform_leaf3.add(transform_leaf4, leaf_2)
+        # -- For leaf 3
+        transform_leaf3 = Node(transform=rotate((0,1,0), phi3)@translate(0,7.5,0), children=[leaf_1])
+        translate_keys = {0: vec(0, 0, 0), 3: vec(0, -0.3, 0) , 5: vec(0,0,0)}
+        rotate_keys = {0: quaternion(), 2: quaternion_from_euler(0, -40, 0),
+                    3: quaternion_from_euler(0, 40, 0), 4: quaternion()}
+        scale_keys = {0: 1, 3:1, 5:1 }
+        animated_leaf3 = KeyFrameControlNode(translate_keys, rotate_keys, scale_keys)
+        animated_leaf3.add(transform_leaf3)
 
-        transform_leaf2 = Node(transform=rotate((0,1,0), phi2))
-        transform_leaf2.add(transform_leaf3, leaf_2)
+        # -- For leaf 2
+        transform_leaf2 = Node(transform=rotate((0,1,0), phi2)@translate(0,7.5,0))
+        transform_leaf2.add(leaf_2)
+        translate_keys = {0: vec(0, 0, 0), 3: vec(0, -0.3, 0) , 5: vec(0,0,0)}
+        rotate_keys = {0: quaternion(), 2: quaternion_from_euler(0, -20, 0),
+                    3: quaternion_from_euler(0, 20, 0), 4: quaternion()}
+        scale_keys = {0: 1, 3:1, 5:1 }
+        animated_leaf2 = KeyFrameControlNode(translate_keys, rotate_keys, scale_keys)
+        animated_leaf2.add(transform_leaf2)
 
+        # -- For leaf 1
         transform_leaf1 = Node(transform=translate(0,7.5,0) )
-        transform_leaf1.add(transform_leaf2, leaf_1)
+        transform_leaf1.add(leaf_1)
+        translate_keys = {0: vec(0, 0, 0), 3: vec(0, -0.3, 0) , 5: vec(0,0,0)}
+        rotate_keys = {0: quaternion(), 2: quaternion_from_euler(0, -30, 0),
+                    3: quaternion_from_euler(0,30, 0), 4: quaternion()}
+        scale_keys = {0: 1, 3:1, 5:1 }
+        animated_leaf1 = KeyFrameControlNode(translate_keys, rotate_keys, scale_keys)
+        animated_leaf1.add(transform_leaf1)
 
-        transform_cyl = Node(transform=translate(0,6,0))
-        transform_cyl.add(base_shape, transform_leaf1)
+        # ----------------------- Hierarchy of the tree -------------------------
+        leaves = Node(children=[animated_leaf4, animated_leaf3, animated_leaf2, animated_leaf1])
 
-        # transform_base = Node(transform=translate(0,8,0))
-        # transform_base.add(second_cylinder, transform_cyl) # notre arbre final
+        transform_cyl = Node(transform=translate(0,12,0))
+        transform_cyl.add(base_shape, leaves)
+
+        transform_base = Node(transform=translate(0,8,0))
+        transform_base.add(second_cylinder, transform_cyl) # notre arbre final
 
 
-        self.add(transform_cyl)
+        # ----------------------- Animation of object ----------------------------------
+
+        # --- For the whole tree
+        translate_keys = {0: vec(0, 0, 0), 2: vec(0, 0, 0), 3: vec(0, -2, 0) , 4: vec(0, 0, 0)}
+        rotate_keys = {0: quaternion(), 2: quaternion_from_euler(0, 180, 0),
+                    3: quaternion_from_euler(0, 280, 0), 4: quaternion_from_euler(0,360,0), 5: quaternion()}
+        scale_keys = {0: 1, 1:0.8, 2:1, 5:1 }
+        keynode = KeyFrameControlNode(translate_keys, rotate_keys, scale_keys)
+        keynode.add(transform_base)
+        self.add(keynode)
+
 
 def main():
     """ main """
-    # TODO : transformer en une classe arbre
-
     viewer = Viewer()
 
     # default color shader
+    # TODO: faire de meilleures textures ?
     shader = Shader("skinning.vert", "texture.frag")
     shader_color = Shader("color.vert", "color.frag")
 
 
     viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
     if len(sys.argv) < 2:
-        tree = Tree()
+        tree = AnimatedTree()
         axis = Axis(shader_color)
 
         viewer.add(tree)
