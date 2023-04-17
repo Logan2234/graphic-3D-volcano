@@ -5,11 +5,11 @@ Quaternion, graphics 4x4 matrices, and vector utilities.
 @author: franco
 """
 # Python built-in modules
-import math                 # mainly for trigonometry functions
+import math  # mainly for trigonometry functions
 from numbers import Number  # useful to check type of arg: scalar or vector?
 
 # external module
-import numpy as np          # matrices, vectors & quaternions are numpy arrays
+import numpy as np  # matrices, vectors & quaternions are numpy arrays
 
 
 # Some useful functions on vectors -------------------------------------------
@@ -30,13 +30,16 @@ def lerp(point_a, point_b, fraction):
 
 
 def compute_normals(base_coords, indices):
-    normals = []
+    normals = [[0, 0, 0] for i in range(len(base_coords))]
+    if (isinstance(indices[0], int)):
+        indices = np.array_split(indices, len(indices)/3)
     for (a, b, c) in indices:
-        v1 = np.subtract(base_coords[a], base_coords[b])
+        v1 = np.subtract(base_coords[b], base_coords[a])
         v2 = np.subtract(base_coords[c], base_coords[b])
-        normals.append(normalized(np.cross(v1, v2)))
-        normals.append(normalized(np.cross(v1, v2)))
-        normals.append(normalized(np.cross(v1, v2)))
+        temp = normalized(np.cross(v1, v2))
+        normals[a] = temp
+        normals[b] = temp
+        normals[c] = temp
     return np.array(normals, np.float32)
 
 # Typical 4x4 matrix utilities for OpenGL ------------------------------------

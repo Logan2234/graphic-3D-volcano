@@ -1,5 +1,5 @@
-import OpenGL.GL as GL              # standard Python OpenGL wrapper
-from PIL import Image               # load texture maps
+import OpenGL.GL as GL  # standard Python OpenGL wrapper
+from PIL import Image  # load texture maps
 
 
 # -------------- OpenGL Texture Wrapper ---------------------------------------
@@ -26,6 +26,7 @@ class Texture:
                   f' wrap={str(wrap_mode).split()[0]}'
                   f' min={str(min_filter).split()[0]}'
                   f' mag={str(mag_filter).split()[0]})')
+            GL.glBindTexture(self.type, 0)
         except FileNotFoundError:
             print("ERROR: unable to load texture file %s" % tex_file)
 
@@ -64,6 +65,8 @@ class TextureCubeMap:
                 print(f'Loaded texture {faces[i]} ({tex.width}x{tex.height})')
             except FileNotFoundError:
                 print("ERROR: unable to load texture file %s" % faces[i])
+
+        GL.glBindTexture(self.type, 0)
 
     def __del__(self):  # delete GL texture from GPU when object dies
         GL.glDeleteTextures(self.glid)

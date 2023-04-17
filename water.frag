@@ -23,13 +23,16 @@ out vec4 out_color;
 
 in vec3 out_normal;
 in vec3 out_position;
+in vec2 frag_tex_coords;
 
 uniform vec3 w_camera_position;
 uniform samplerCube skybox;
+uniform sampler2D tex;
 
 void main()
-{             
+{
     vec3 I = normalize(out_position - w_camera_position);
     vec3 R = reflect(I, normalize(out_normal));
-    out_color = mix(vec4(texture(skybox, R).rgb, 1.0), vec4(122.0/255, 144.0/255, 252.0/255, 1), 0.3);
+
+    out_color = mix(texture(skybox, R), texture(tex, frag_tex_coords), 1);
 }
