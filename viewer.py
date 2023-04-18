@@ -569,7 +569,8 @@ def main():
 
     viewer.add(Skybox(skybox_shader, ["cubemaps/right.png", "cubemaps/left.png",
                                       "cubemaps/top.png", "cubemaps/bottom.png", "cubemaps/front.png", "cubemaps/back.png"]))
-    viewer.add(Floor(shader, "rock.png", "flowers.png"))
+    viewer.add(Floor(shader, "cayu.jpg", "flowers.png"))
+    viewer.add(Volcano(shader, "cayu.jpg", "flowers.png"))
     if len(sys.argv) != 2:
         print(
             'Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in format supported by assimp.' % (sys.argv[0],))
