@@ -1,7 +1,8 @@
 """Camera module redefining our own camera"""
 
+import glfw  # lean window system wrapper for OpenGL
 import numpy as np
-import glfw                         # lean window system wrapper for OpenGL
+
 from transform import lookat, normalized, perspective, vec
 
 CAMERA_NORMAL_MOVE = 0
@@ -13,16 +14,16 @@ class Camera:
 
     def __init__(self):
         # camera Attributes
-        self.position = vec(-3.0, 0.0, 3.0)
+        self.position = vec(50.0, 0.0, 3.0)
         self.front = vec(0.0, 0.0, 0.0)
         self.up = vec(0.0, 0.0, 0.0)
         self.right = vec(0.0, 0.0, 0.0)
         self.world_up = vec(0.0, 0.0, 1.0)
         # euler Angles
-        self.yaw = 0
+        self.yaw = 180
         self.pitch = 0
         # camera options
-        self.movement_speed = 1
+        self.movement_speed = 5
         self.mouse_sensitivity = 0.1
         self.zoom = 50
         self.update_camera_vectors()
@@ -37,7 +38,7 @@ class Camera:
 
     def projection_matrix(self, win_size):
         """Returns the projection matrix"""
-        return perspective(self.zoom, win_size[0] / win_size[1], 0.1, 1000)
+        return perspective(self.zoom, win_size[0] / win_size[1], 0.1, 100000)
 
     def process_mouvement(self, win):
         """Allows the camera translate"""
@@ -99,3 +100,11 @@ class Camera:
         # also re-calculate the Right and Up vector
         self.right = normalized(np.cross(self.front, self.world_up))
         self.up = normalized(np.cross(self.right, self.front))
+
+    def changeSpeed(self, win):
+        """ Change the speed of the camera accordding to the key pressed """
+        if glfw.get_key(win, glfw.KEY_KP_ADD):
+            self.movement_speed += 5
+        elif glfw.get_key(win, glfw.KEY_KP_SUBTRACT):
+            self.movement_speed -= 5
+        print("Speed changed to " + str(self.movement_speed))

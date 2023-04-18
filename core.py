@@ -1,20 +1,21 @@
 """Core file implementing the viewer but also the Shader, Node, VertexArray classes."""
 
 # Python built-in modules
-import os                           # os function, i.e. checking file status
-from itertools import cycle         # allows easy circular choice list
 import atexit
-import time                       # launch a function at exit
+import os  # os function, i.e. checking file status
+import time  # launch a function at exit
+from itertools import cycle  # allows easy circular choice list
 
+import assimpcy  # 3D resource loader
+import glfw  # lean window system wrapper for OpenGL
+import numpy as np  # all matrix manipulations & OpenGL args
 # External, non built-in modules
-import OpenGL.GL as GL              # standard Python OpenGL wrapper
-import glfw                         # lean window system wrapper for OpenGL
-import numpy as np                  # all matrix manipulations & OpenGL args
-import assimpcy                     # 3D resource loader
+import OpenGL.GL as GL  # standard Python OpenGL wrapper
 
+from camera import (CAMERA_NORMAL_MOVE, CAMERA_PAN_MOVE, CAMERA_ROTATE_MOVE,
+                    Camera)
 # our transform functions
-from transform import identity, Trackball
-from camera import CAMERA_NORMAL_MOVE, CAMERA_PAN_MOVE, CAMERA_ROTATE_MOVE, Camera
+from transform import identity
 
 # initialize and automatically terminate glfw on exit
 glfw.init()
@@ -137,6 +138,7 @@ class VertexArray:
             GL.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, index_buffer, usage)
             self.draw_command = GL.glDrawElements
             self.arguments = (index_buffer.size, GL.GL_UNSIGNED_INT, None)
+        GL.glBindVertexArray(0)
 
     def execute(self, primitive, attributes=None):
         """ draw a vertex array, either as direct array or indexed array """
@@ -146,9 +148,9 @@ class VertexArray:
         for name, data in attributes.items():
             GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.buffers[name])
             GL.glBufferSubData(GL.GL_ARRAY_BUFFER, 0, data)
-
         GL.glBindVertexArray(self.glid)
         self.draw_command(primitive, *self.arguments)
+        GL.glBindVertexArray(0)
 
     def __del__(self):  # object dies => kill GL array and buffers from GPU
         GL.glDeleteVertexArrays(1, [self.glid])
@@ -169,7 +171,6 @@ class Mesh:
         GL.glUseProgram(self.shader.glid)
         self.shader.set_uniforms({**self.uniforms, **uniforms})
         self.vertex_array.execute(primitives, attributes)
-
 
 # ------------  Node is the core drawable for hierarchical scene graphs -------
 class Node:
@@ -395,14 +396,15 @@ class Viewer(Node):
                 glfw.set_input_mode(self.win, glfw.CURSOR,
                                     glfw.CURSOR_DISABLED)
 
-
                 win_size = glfw.get_window_size(self.win)
 
                 # draw our scene objects
                 self.draw(view=self.camera.get_view_matrix(),
                           projection=self.camera.projection_matrix(win_size),
                           model=identity(),
-                          w_camera_position=self.camera.camera_position())
+                          w_camera_position=self.camera.camera_position(),
+                          time=glfw.get_time(),
+                          resolution=win_size)
 
                 # flush render commands, and swap draw buffers
                 glfw.swap_buffers(self.win)
@@ -418,10 +420,12 @@ class Viewer(Node):
                 glfw.set_window_should_close(self.win, True)
             if key == glfw.KEY_Z:
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, next(self.fill_modes))
-            if key == glfw.KEY_SPACE:
+            if key == glfw.KEY_ENTER:
                 glfw.set_time(0.0)
             if key in (glfw.KEY_W, glfw.KEY_A, glfw.KEY_S, glfw.KEY_D, glfw.KEY_SPACE, glfw.KEY_C):
                 self.camera.process_mouvement(win)
+            if key in (glfw.KEY_KP_ADD, glfw.KEY_KP_SUBTRACT):
+                self.camera.changeSpeed(win)
 
             # call Node.key_handler which calls key_handlers for all drawables
             self.key_handler(key)
@@ -434,13 +438,16 @@ class Viewer(Node):
 
         xoffset = xpos - self.mouse[0]
         yoffset = self.mouse[1] - ypos
-        
+
         if glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_LEFT):
-            self.camera.process_mouse_movement(xoffset, yoffset, CAMERA_ROTATE_MOVE)
+            self.camera.process_mouse_movement(
+                xoffset, yoffset, CAMERA_ROTATE_MOVE)
         elif glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_RIGHT):
-            self.camera.process_mouse_movement(xoffset, yoffset, CAMERA_PAN_MOVE)
+            self.camera.process_mouse_movement(
+                xoffset, yoffset, CAMERA_PAN_MOVE)
         else:
-            self.camera.process_mouse_movement(xoffset, yoffset, CAMERA_NORMAL_MOVE)
+            self.camera.process_mouse_movement(
+                xoffset, yoffset, CAMERA_NORMAL_MOVE)
 
         self.mouse = (xpos, ypos)
 
