@@ -3,6 +3,7 @@
 # Python built-in modules
 import atexit
 import os  # os function, i.e. checking file status
+import sys
 import time  # launch a function at exit
 from itertools import cycle  # allows easy circular choice list
 
@@ -27,7 +28,7 @@ class Shader:
     """ Helper class to create and automatically destroy shader program """
     @staticmethod
     def _compile_shader(src, shader_type):
-        src = open(src, 'r').read() if os.path.exists(src) else src
+        src = open(src, 'r', encoding='UTF-8').read() if os.path.exists(src) else src
         src = src.decode('ascii') if isinstance(src, bytes) else src
         shader = GL.glCreateShader(shader_type)
         GL.glShaderSource(shader, src)
@@ -39,7 +40,7 @@ class Shader:
             GL.glDeleteShader(shader)
             src = '\n'.join(src)
             print('Compile failed for %s\n%s\n%s' % (shader_type, log, src))
-            os._exit(1)
+            sys.exit(1)
         return shader
 
     def __init__(self, vertex_source, fragment_source, debug=False):

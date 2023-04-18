@@ -14,7 +14,7 @@ class Camera:
 
     def __init__(self):
         # camera Attributes
-        self.position = vec(50.0, 0.0, 3.0)
+        self.position = vec(50.0, 0.0, 10.0)
         self.front = vec(0.0, 0.0, 0.0)
         self.up = vec(0.0, 0.0, 0.0)
         self.right = vec(0.0, 0.0, 0.0)
@@ -23,7 +23,7 @@ class Camera:
         self.yaw = 180
         self.pitch = 0
         # camera options
-        self.movement_speed = 5
+        self.movement_speed = 20
         self.mouse_sensitivity = 0.1
         self.zoom = 50
         self.update_camera_vectors()

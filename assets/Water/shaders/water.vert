@@ -16,13 +16,16 @@ out vec2 frag_tex_coords;
 void main() {
     vec3 new_pos = position;
 
-    new_pos.z = cos(new_pos.x * 0.6 + time);
-    new_pos.x += 2 * sin(time);
+    float distance = sqrt(pow(new_pos.x, 2) + pow(new_pos.y, 2));
+    float offset = distance * 0.05;
+    float amplitude = 10;
+
+    new_pos.z += amplitude * cos(offset + time);
 
     out_position = vec3(model * vec4(new_pos, 1.0));
 
     out_normal = mat3(transpose(inverse(model))) * normal;
-    out_normal.x = sin(new_pos.x * 0.6 + time) * 0.5;
+    out_normal.xy = vec2(sin(offset / 2 + time / 2));
     out_normal = normalize(out_normal);
 
     frag_tex_coords = tex_coord.xy;
