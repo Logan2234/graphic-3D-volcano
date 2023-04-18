@@ -13,7 +13,7 @@ import numpy as np                  # all matrix manipulations & OpenGL args
 import assimpcy                     # 3D resource loader
 
 # our transform functions
-from transform import identity
+from transform import identity, Trackball
 from camera import CAMERA_NORMAL_MOVE, CAMERA_PAN_MOVE, CAMERA_ROTATE_MOVE, Camera
 
 # initialize and automatically terminate glfw on exit

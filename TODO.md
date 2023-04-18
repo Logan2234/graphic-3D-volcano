@@ -8,7 +8,7 @@
 ## Modélisation
 
 - Au moins un élément généré procéduralement: le sol, le volcan
-- Élément hiérarchique: Arbres, plantes, etc
+- ~~ Élément hiérarchique: Arbres, plantes, etc ~~
 
 ## Rendering
 
@@ -20,9 +20,9 @@
 
 ## Animation
 
-- Animation d'un élément avec des keyframe
+- ~~Animation d'un élément avec des keyframe~~
 - Fluide à animer
-- Un élément controllé par une touche
+- Un élément controllé par une touche -> relanche de l'animation si on appuie sur espace
 
 ## Un autre élément externe à la liste
 

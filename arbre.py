@@ -1,41 +1,26 @@
 #!/usr/bin/env python3
 """
-Python OpenGL practical application.
+Contains class for a cute animated tree
 """
 
-import sys                          # for system arguments
+from core import Shader, Node, load
+from transform import scale, translate, rotate, vec, quaternion, quaternion_from_euler
 
-# External, non built-in modules
-import OpenGL.GL as GL              # standard Python OpenGL wrapper
-import numpy as np                  # all matrix manipulations & OpenGL args
-import glfw                         # lean window system wrapper for OpenGL
-
-from core import Shader, Mesh, Viewer, Node, load
-from transform import *
-
-from animation import KeyFrameControlNode, Skinned
-
-class Axis(Mesh):
-    """ Axis object useful for debugging coordinate frames """
-    def __init__(self, shader):
-        pos = ((0, 0, 0), (10, 0, 0), (0, 0, 0), (0, 10, 0), (0, 0, 0), (0, 0, 10))
-        col = ((1, 0, 0), (1, 0, 0), (0, 1, 0), (0, 1, 0), (0, 0, 1), (0, 0, 1))
-        super().__init__(shader, attributes=dict(position=pos, color=col))
-
-    def draw(self, primitives=GL.GL_LINES, **uniforms):
-        super().draw(primitives=primitives, **uniforms)
+from animation import KeyFrameControlNode
 
 class Leaf(Node):
     """ Low poly leaf based on provided object"""
     def __init__(self, shader):
         super().__init__()
-        self.add(*load('leaf.obj', shader, tex_file = 'leaf.jpg'))  # just load leaf from file
+        self.add(*load('arbre/leaf.obj', shader,
+                       tex_file = 'arbre/leaf.jpg'))  # just load leaf from file
 
 class Cylinder(Node):
+    """ Cylinder based on provided object"""
     def __init__(self, shader):
-        
         super().__init__()
-        self.add(*load('cylinder.obj', shader, tex_file = 'wood.png'))  # just load cylinder from file
+        self.add(*load('arbre/cylinder.obj', shader,
+                       tex_file = 'arbre/wood.png'))  # just load cylinder from file
 
 
 class AnimatedTree(Node):
@@ -52,7 +37,7 @@ class AnimatedTree(Node):
         base_shape.add(cylinder)
 
         second_cylinder = Node(transform=scale((1.5,8,1.5)))
-        second_cylinder.add(cylinder)   
+        second_cylinder.add(cylinder)
 
 
         # --- Make 4 leaves
@@ -74,7 +59,8 @@ class AnimatedTree(Node):
         phi4 = 270.0         # ...
 
         # --- For leaf 4
-        transform_leaf4 = Node(transform=rotate((0,1,0), phi4)@translate(0,7.2,0), children=[leaf_4])
+        transform_leaf4 = Node(transform=rotate((0,1,0), phi4)@translate(0,7.2,0),
+                               children=[leaf_4])
         translate_keys = {0: vec(0, 0, 0), 3: vec(0, -0.3, 0) , 5: vec(0,0,0)}
         rotate_keys = {0: quaternion(), 2: quaternion_from_euler(0, -30, 0),
                     3: quaternion_from_euler(0, 30, 0), 4: quaternion()}
@@ -83,7 +69,8 @@ class AnimatedTree(Node):
         animated_leaf4.add(transform_leaf4)
 
         # -- For leaf 3
-        transform_leaf3 = Node(transform=rotate((0,1,0), phi3)@translate(0,7.5,0), children=[leaf_1])
+        transform_leaf3 = Node(transform=rotate((0,1,0), phi3)@translate(0,7.5,0),
+                            children=[leaf_1])
         translate_keys = {0: vec(0, 0, 0), 3: vec(0, -0.3, 0) , 5: vec(0,0,0)}
         rotate_keys = {0: quaternion(), 2: quaternion_from_euler(0, -40, 0),
                     3: quaternion_from_euler(0, 40, 0), 4: quaternion()}
@@ -126,36 +113,9 @@ class AnimatedTree(Node):
         # --- For the whole tree
         translate_keys = {0: vec(0, 0, 0), 2: vec(0, 0, 0), 3: vec(0, -2, 0) , 4: vec(0, 0, 0)}
         rotate_keys = {0: quaternion(), 2: quaternion_from_euler(0, 180, 0),
-                    3: quaternion_from_euler(0, 280, 0), 4: quaternion_from_euler(0,360,0), 5: quaternion()}
+                    3: quaternion_from_euler(0, 280, 0), 4: quaternion_from_euler(0,360,0),
+                    5: quaternion()}
         scale_keys = {0: 1, 1:0.8, 2:1, 5:1 }
         keynode = KeyFrameControlNode(translate_keys, rotate_keys, scale_keys)
         keynode.add(transform_base)
         self.add(keynode)
-
-
-def main():
-    """ main """
-    viewer = Viewer()
-
-    # default color shader
-    # TODO: faire de meilleures textures ?
-    shader = Shader("skinning.vert", "texture.frag")
-    shader_color = Shader("color.vert", "color.frag")
-
-
-    viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
-    if len(sys.argv) < 2:
-        tree = AnimatedTree()
-        axis = Axis(shader_color)
-
-        viewer.add(tree)
-        viewer.add(axis)
-
-        print('Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in'
-              ' format supported by assimp.' % (sys.argv[0],))
-
-    # start rendering loop
-    viewer.run()
-
-if __name__ == '__main__':
-    main()                     # main function keeps variables locally scoped
