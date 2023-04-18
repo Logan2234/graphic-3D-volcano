@@ -18,11 +18,12 @@ noise1 = PerlinNoise(octaves=3)
 noise2 = PerlinNoise(octaves=6)
 noise3 = PerlinNoise(octaves=12)
 
+
 class Volcano(Textured):
     """Simple first textured object"""
 
     def __init__(self, shader, tex_file, tex_file2):
-        TAILLE = 40
+        TAILLE = 80
 
         self.wrap, self.filter = GL.GL_REPEAT, (
             GL.GL_LINEAR, GL.GL_LINEAR_MIPMAP_LINEAR)
@@ -33,7 +34,6 @@ class Volcano(Textured):
         scaled = np.array(base_coords)
 
         def getAltitude(x, y, puissance):
-            # return np.sin(x+np.cos(y))+0.5 * np.sin(2+y+np.cos(2 * x))+0.4
             nx = x / 100
             ny = y / 100
             out = 2 * noise1([nx, ny])
@@ -97,7 +97,7 @@ class TexturedPlane(Textured):
 
         # setup plane mesh to be textured
         base_coords = ((-1, -1, 0), (1, -1, 0), (1, 1, 0), (-1, 1, 0))
-        scaled = 100 * np.array(base_coords, np.float32)
+        scaled = np.array(base_coords, np.float32)
         indices = np.array(((0, 1, 2), (0, 2, 3)), np.uint32)
         mesh = Mesh(
             shader,
@@ -499,7 +499,7 @@ class Floor(Textured):
                 )
             )
 
-        scaled = 100 * np.array(positions, np.float32)
+        scaled = np.array(positions, np.float32)
         indices = []
         for i in range(300):
             for j in range(300):
@@ -847,22 +847,22 @@ def main():
 
     viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
 
-    # viewer.add(
-    #     Skybox(
-    #         skybox_shader,
-    #         [
-    #             "cubemaps/right.png",
-    #             "cubemaps/left.png",
-    #             "cubemaps/top.png",
-    #             "cubemaps/bottom.png",
-    #             "cubemaps/front.png",
-    #             "cubemaps/back.png",
-    #         ],
-    #     )
-    # )
+    viewer.add(
+        Skybox(
+            skybox_shader,
+            [
+                "cubemaps/right.png",
+                "cubemaps/left.png",
+                "cubemaps/top.png",
+                "cubemaps/bottom.png",
+                "cubemaps/front.png",
+                "cubemaps/back.png",
+            ],
+        )
+    )
 
-    # viewer.add(WaterPlane(water_shader))
     # viewer.add(Volcano(shader_volcano, "grass.png", "basalte.jpg"))
+    # viewer.add(WaterPlane(water_shader))
     # viewer.add(TexturedPlane(shader, "grass.png", "flowers.png"))
     # viewer.add(Floor(shader, "grass.png", "flowers.png"))
 

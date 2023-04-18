@@ -90,4 +90,4 @@ class Textured:
             uniforms[name] = index
         self.drawable.draw(primitives=primitives, **uniforms)
         if "skybox" in self.textures:
-            GL.glDisable(GL.GL_DEPTH_TEST)
+            GL.glEnable(GL.GL_DEPTH_TEST)
