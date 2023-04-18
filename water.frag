@@ -34,5 +34,6 @@ void main()
     vec3 I = normalize(out_position - w_camera_position);
     vec3 R = reflect(I, normalize(out_normal));
 
+    // out_color = mix(vec4(texture(skybox, R).rgb, 1), vec4(100.0 / 255.0, 217.0 / 255.0, 219.0 / 255.0, 1.0), 0.3);
     out_color = mix(texture(skybox, R), texture(tex, frag_tex_coords), 1);
 }
