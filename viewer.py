@@ -362,7 +362,7 @@ class Floor(Textured):
             positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40), -30))
             tex_coords.append(((150 + 120 + 30 * np.cos(2 * np.pi * (i + 1) / 40)) * 3 / 150, (150 + -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40)) * 3 / 150))
         
-        scaled = 100 * np.array(positions, np.float32)
+        scaled = 0.5 * np.array(positions, np.float32)
         indices = []
         for i in range(300):
             for j in range(300):
@@ -707,7 +707,7 @@ def main():
     viewer.add(Skybox(skybox_shader, ["cubemaps/right.png", "cubemaps/left.png",
                                       "cubemaps/top.png", "cubemaps/bottom.png", "cubemaps/front.png", "cubemaps/back.png"]))
     viewer.add(Floor(shader, "cayu.jpg", "flowers.png"))
-    viewer.add(Volcano(shader, "cayu.jpg", "flowers.png"))
+    viewer.add(Volcano(shader_volcano, "grass.png", "basalte.jpg"))
     if len(sys.argv) != 2:
         print(
             "Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in format supported by assimp."
