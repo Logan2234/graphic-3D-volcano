@@ -31,12 +31,12 @@ void main() {
     }
 
     // Compute dirt_coef
-    if(position.z < 2) {
+    if(position.z < 4) {
         dirt_coef = 1;
-    } else if(position.z > 4) {
+    } else if(position.z > 6) {
         dirt_coef = 0;
     } else {
-        dirt_coef = -0.5 * position.z + 2;
+        dirt_coef = -0.5 * position.z + 3;
     }
 
     out_normal = mat3(transpose(inverse(model))) * normal;

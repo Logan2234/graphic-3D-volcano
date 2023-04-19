@@ -10,18 +10,23 @@ from core import Mesh
 from texture import Texture, Textured
 from transform import compute_normals, create_grid
 
-noise0 = PerlinNoise(octaves=1, seed=1)
 noise1 = PerlinNoise(octaves=3, seed=3)
 noise2 = PerlinNoise(octaves=6, seed=2)
 
 
-def get_altitude(x, y, puissance):
+def get_altitude(x, y, puissance, taille):
     """Returns the altitude computed with perlin noise"""
+    if (
+        x - taille == taille
+        or y - taille == taille
+        or x - taille == -taille
+        or y - taille == -taille
+    ):
+        return 0
     nx = x / 100
     ny = y / 100
-    out = 5 * noise0([nx, ny])
-    out += 3 * noise1([nx, ny])
-    out += 2 * noise2([nx, ny])
+    out = 4 * noise1([nx, ny])
+    out += 3 * noise2([nx, ny])
     if out <= 0:
         return out
     return Math.pow(out, puissance)
@@ -31,7 +36,7 @@ class Volcano(Textured):
     """Simple first textured object"""
 
     def __init__(self, shader, tex_file, tex_file2):
-        self.taille = 50
+        self.taille = 80
 
         self.wrap = GL.GL_REPEAT
         self.filter = (GL.GL_LINEAR, GL.GL_LINEAR_MIPMAP_LINEAR)
@@ -51,8 +56,8 @@ class Volcano(Textured):
                     * (np.sqrt((y_pos - self.taille) ** 2 + (x_pos - self.taille) ** 2))
                     ** 2
                 )
-                point[2] = 2000 * distance / (500 + distance**2)
-                point[2] += 2 * get_altitude(x_pos, y_pos, 0.01)
+                point[2] = 10000 * distance / (2000 + distance**2)
+                point[2] += 2 * get_altitude(x_pos, y_pos, 0.01, self.taille)
 
         normal = compute_normals(base_coords, indices)
 

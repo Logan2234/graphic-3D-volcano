@@ -16,7 +16,8 @@ in vec3 out_normal;
 in vec3 frag_pos;
 in vec4 view_space;
 
-const vec3 lightColor = vec3(1, 1, 1);
+vec3 lightColor = vec3(1, 1, 1);
+vec3 lavaColor = vec3(0.811, 0.06, 0.125);
 const float K_a = 0.1;
 const float K_s = 0;
 const float K_d = 1 - K_s;
@@ -37,23 +38,37 @@ void main() {
     /**************** Light calculation *****************/
 
     // Ambient
-    vec3 ambient = K_a * lightColor;
+    float ambient = K_a;
 
     // Diffuse
     vec3 norm = normalize(out_normal);
     vec3 lightDir = normalize(vec3(-0.5, -0.5, 1)); // Approx of sunlight pos
 
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = K_d * diff * lightColor;
+    float diffuse = K_d * diff;
 
     // Specular
     vec3 viewDir = normalize(w_camera_position - frag_pos);
     vec3 reflectDir = reflect(-lightDir, norm);
 
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = K_s * spec * lightColor;
+    float specular = K_s * spec;
 
-    vec3 color = (ambient + diffuse + specular) * tex_color.rgb;
+    vec3 colorWithDirLight = (ambient + diffuse + specular) * lightColor * tex_color.rgb;
+
+    // Computation of light emitted by lava
+    vec3 lavaPos = vec3(0, 0, 100);
+    vec3 lightDirLava = normalize(lavaPos - frag_pos);
+    float diffLava = max(dot(norm, lightDirLava), 0.0);
+    float diffuseLava = K_d * diffLava;
+    // Attenuation of point light
+    float distance = length(lightDirLava - frag_pos);
+    float attenuation = 1.0 / (1.0 + 0.007 * distance + 0.0002 * (distance * distance));
+
+    vec3 color = colorWithDirLight;
+
+    if(length(frag_pos.xy) < 20)
+        color += diffuseLava * attenuation * lavaColor;
 
     // Fog
     float dist = length(view_space);
