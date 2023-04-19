@@ -30,17 +30,22 @@ def compute_normals(base_coords, indices):
 from perlin_noise import PerlinNoise
 
 
-def create_grid(size, noise=False, height_offset = 0):
+def create_grid(size, noise=False, height_offset = 0, formula = None):
     """Create grid for terrain generation"""
     positions = []
     indices = []
-    noise = PerlinNoise(10)
+    if (noise):
+        noise = PerlinNoise(10)
 
     for i in range(-size, size + 1):
         for j in range(-size, size + 1):
-            positions.append(
-                (i, j, 5 * noise([(i + size) / (2 * size), (j + size) / (2 * size)]) + height_offset if noise else height_offset)
-            )
+            if (noise):
+                height = 5 * noise([(i + size) / (2 * size), (j + size) / (2 * size)]) + height_offset
+            elif (formula):
+                height = formula(i, j)
+            else:
+                height = height_offset
+            positions.append((i, j, height))
             current = (i + size) * (2 * size + 1) + j + size
             if i > -size and j == -size:
                 indices.append((current - (2 * size + 1), current, current - 2 * size))

@@ -13,14 +13,13 @@ from transform import compute_normals, create_grid
 noise1 = PerlinNoise(octaves=3, seed=3)
 noise2 = PerlinNoise(octaves=6, seed=2)
 
-
 def get_altitude(x, y, puissance, taille):
     """Returns the altitude computed with perlin noise"""
     if (
-        x - taille == taille
-        or y - taille == taille
-        or x - taille == -taille
-        or y - taille == -taille
+        x - taille >= taille - 1
+        or y - taille >= taille - 1
+        or x - taille <= -taille + 1
+        or y - taille <= -taille + 1
     ):
         return 0
     nx = x / 100
@@ -30,6 +29,35 @@ def get_altitude(x, y, puissance, taille):
     if out <= 0:
         return out
     return Math.pow(out, puissance)
+
+def smooth(points, size):
+    """Applique une fonction de lissage sur un ensemble de points 3D."""
+
+    for i in range(2 * size + 2, len(points) - (2 * size + 1)):
+        if i % (2 * size + 1) == 0 or i % (2 * size) == 0:
+            continue
+
+        voisins_directs = 2 * np.array(
+            [
+                2 * points[i],
+                points[i + 1],
+                points[i - 1],
+                points[i - (2 * size + 1)],
+                points[i + (2 * size + 1)],
+            ]
+        )
+        voisins_diagonale = np.array(
+            [
+                points[i - (2 * size - 2)],
+                points[i - 2 * size],
+                points[i + 2 * size],
+                points[i + (2 * size + 1)],
+            ]
+        )
+
+        points[i] = (
+            np.sum(np.concatenate((voisins_diagonale, voisins_directs)), axis=0) / 16
+        )
 
 
 class Volcano(Textured):
@@ -43,21 +71,15 @@ class Volcano(Textured):
         self.file = tex_file
         self.file2 = tex_file2
 
-        base_coords, indices = create_grid(self.taille)
-        base_coords = 2 * base_coords
+        def formula(x_pos, y_pos):
+            distance = 0.4 * (np.sqrt(y_pos**2 + x_pos**2)) ** 2
+            return 5000 * distance / (1500 + distance**2) + 2 * get_altitude(
+                x_pos + self.taille, y_pos + self.taille, 0.01, self.taille
+            )
 
-        for i, point in enumerate(base_coords):
-            x_pos, y_pos = i % (2 * self.taille + 1), i // (2 * self.taille + 1)
-            if x_pos == self.taille and y_pos == self.taille:
-                point[2] = base_coords[i - 1][2]
-            else:
-                distance = (
-                    0.4
-                    * (np.sqrt((y_pos - self.taille) ** 2 + (x_pos - self.taille) ** 2))
-                    ** 2
-                )
-                point[2] = 10000 * distance / (2000 + distance**2)
-                point[2] += 2 * get_altitude(x_pos, y_pos, 0.01, self.taille)
+        base_coords, indices = create_grid(self.taille, formula=formula)
+        base_coords = 2.5 * base_coords
+        smooth(base_coords, self.taille)
 
         normal = compute_normals(base_coords, indices)
 

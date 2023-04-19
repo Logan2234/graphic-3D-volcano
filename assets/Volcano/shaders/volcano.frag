@@ -57,7 +57,7 @@ void main() {
     vec3 colorWithDirLight = (ambient + diffuse + specular) * lightColor * tex_color.rgb;
 
     // Computation of light emitted by lava
-    vec3 lavaPos = vec3(0, 0, 100);
+    vec3 lavaPos = vec3(0, 0, 150);
     vec3 lightDirLava = normalize(lavaPos - frag_pos);
     float diffLava = max(dot(norm, lightDirLava), 0.0);
     float diffuseLava = K_d * diffLava;
@@ -67,7 +67,7 @@ void main() {
 
     vec3 color = colorWithDirLight;
 
-    if(length(frag_pos.xy) < 20)
+    if(length(frag_pos.xy) < 30)
         color += diffuseLava * attenuation * lavaColor;
 
     // Fog
