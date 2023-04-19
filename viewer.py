@@ -89,10 +89,11 @@ def main():
             ],
         )
     )
-    tree0 = Tree(transform=translate((-200,-100,100))@scale((0.3,0.3,0.3)))
+    tree0 = Tree(transform=translate((15000,15000,30000)))
     floor = Node(transform=scale((0.008,0.008,0.008)), children=[Floor(shader, "img/cayu.jpg", "img/flowers.png")])
-    volcano = Node(transform=scale((3,3,3))@translate((0,0,-350)), children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg"), floor, tree0])
-    viewer.add(volcano)
+    volcano = Node(children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg")])
+    island = Node(transform=scale((3,3,3))@translate((0,0,-350)), children=[volcano, floor, tree0])
+    viewer.add(island)
     viewer.add(Water(water_shader))
 
     # start rendering loop
