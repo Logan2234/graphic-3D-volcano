@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
+
+import math as Math
 import sys
-from itertools import cycle
-import OpenGL.GL as GL              # standard Python OpenGL wrapper
-import glfw                         # lean window system wrapper for OpenGL
-import numpy as np                  # all matrix manipulations & OpenGL args
-from core import Shader, Viewer, Mesh, load
-from skybox import Skybox
+
+import numpy as np  # all matrix manipulations & OpenGL args
+from OpenGL import GL  # standard Python OpenGL wrapper
+from perlin_noise import PerlinNoise  # pip install perlin-noise
+
+from assets.Skybox.skybox import Skybox
+from assets.Volcano.volcano import Volcano
+from assets.Water.water import Water
+from core import Mesh, Shader, Viewer, load
 from texture import Texture, Textured
+from transform import compute_normals
 
 from floor import Floor
 
@@ -50,25 +56,46 @@ class TexturedPlane(Textured):
 
 # -------------- main program and scene setup --------------------------------
 
+
 def main():
-    """ create a window, add scene objects, then run rendering loop """
+    """create a window, add scene objects, then run rendering loop"""
     viewer = Viewer()
+    shader_color = Shader("fog.vert", "fog.frag")
     shader = Shader("texture.vert", "texture.frag")
-    skybox_shader = Shader("skybox.vert", "skybox.frag")
-    
+    shader_color = Shader("color.vert", "color.frag")
+
+    water_shader = Shader("assets/Water/shaders/water.vert", "assets/Water/shaders/water.frag")
+
+    skybox_shader = Shader(
+        "assets/Skybox/shaders/skybox.vert", "assets/Skybox/shaders/skybox.frag"
+    )
+    shader_volcano = Shader(
+        "assets/Volcano/shaders/volcano.vert", "assets/Volcano/shaders/volcano.frag"
+    )
+
     viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
 
-    viewer.add(Skybox(skybox_shader, ["cubemaps/right.png", "cubemaps/left.png",
-                                      "cubemaps/top.png", "cubemaps/bottom.png", "cubemaps/front.png", "cubemaps/back.png"]))
-    #viewer.add(TexturedPlane(shader, "grass.png", "flowers.png"))
-    viewer.add(Floor(shader, "grass.png", "flowers.png"))
-    if len(sys.argv) != 2:
-        print(
-            'Usage:\n\t%s [3dfile]*\n\n3dfile\t\t the filename of a model in format supported by assimp.' % (sys.argv[0],))
+    viewer.add(
+        Skybox(
+            skybox_shader,
+            [
+                "img/cubemaps/right.png",
+                "img/cubemaps/left.png",
+                "img/cubemaps/top.png",
+                "img/cubemaps/bottom.png",
+                "img/cubemaps/front.png",
+                "img/cubemaps/back.png",
+            ],
+        )
+    )
+
+    viewer.add(Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg"))
+    viewer.add(Water(water_shader))
+    # viewer.add(Floor(shader, "img/cayu.jpg", "img/flowers.png"))
 
     # start rendering loop
     viewer.run()
 
 
-if __name__ == '__main__':
-    main()                     # main function keeps variables locally scoped
+if __name__ == "__main__":
+    main()  # main function keeps variables locally scoped

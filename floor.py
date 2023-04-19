@@ -13,7 +13,7 @@ noise3 = PerlinNoise(octaves=12)
 
 class Floor(Textured):
     """ Simple first textured object """
-    def __init__(self, shader, tex_file):
+    def __init__(self, shader, tex_file, tex_file2):
         # prepare texture modes cycling variables for interactive toggling
         self.wraps = cycle([GL.GL_REPEAT, GL.GL_MIRRORED_REPEAT,
                             GL.GL_CLAMP_TO_BORDER, GL.GL_CLAMP_TO_EDGE])
