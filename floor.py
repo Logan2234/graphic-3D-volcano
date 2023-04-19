@@ -240,7 +240,7 @@ class Floor(Textured):
             positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40), -30))
             tex_coords.append(((150 + 120 + 30 * np.cos(2 * np.pi * (i + 1) / 40)) * 3 / 150, (150 + -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40)) * 3 / 150))
         
-        scaled = 100 * np.array(positions, np.float32)
+        scaled = np.array(positions, np.float32)
         indices = []
         for i in range(300):
             for j in range(300):
