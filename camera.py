@@ -14,13 +14,13 @@ class Camera:
 
     def __init__(self):
         # camera Attributes
-        self.position = vec(-1000.0, 700.0, -700.0)
-        self.front = vec(0.8, -0.5, -0.4)
-        self.up = vec(0.3, -0.2, 0.9)
-        self.right = vec(-0.6, -0.8, 0.0)
+        self.position = vec(-910.0, -1050.0, -1010.0)
+        self.front = vec(0.6, 0.76, -0.2)
+        self.up = vec(0.14, 0.17, 0.97)
+        self.right = vec(0.78, -0.6, 0.0)
         self.world_up = vec(0.0, 0.0, 1.0)
         # euler Angles
-        self.yaw = 180
+        self.yaw = 0
         self.pitch = 0
         # camera options
         self.movement_speed = 20
@@ -34,7 +34,7 @@ class Camera:
 
     def get_view_matrix(self):
         """Returns the view matrix"""
-        print(f"{self.position},{self.front},{self.up},{self.right}\n")
+        #print(f"{self.position},{self.front},{self.up},{self.right}\n")
         return lookat(self.position, self.position + self.front, self.up)
 
     def projection_matrix(self, win_size):

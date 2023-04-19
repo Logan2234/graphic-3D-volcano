@@ -4,7 +4,7 @@ Contains class for a cute animated tree
 """
 
 from core import Shader, Node, load
-from transform import scale, translate, rotate, vec, quaternion, quaternion_from_euler
+from transform import scale, translate, rotate, vec, quaternion, quaternion_from_euler, identity
 
 from animation import KeyFrameControlNode
 
@@ -21,6 +21,66 @@ class Cylinder(Node):
         super().__init__()
         self.add(*load('arbre/cylinder.obj', shader,
                        tex_file = 'arbre/wood.png'))  # just load cylinder from file
+
+class Tree(Node):
+    """ Hierchical element with a static version """
+    def __init__(self, children=(), transform=identity()):
+        super().__init__(children=(), transform=identity())
+
+        # ------------------------------ Constants used --------------------------
+        cylinder = Cylinder(Shader("texture.vert", "texture.frag"))
+        leaf = Leaf(Shader("texture.vert", "texture.frag"))
+
+        # --- Make two long cylinders
+        base_shape = Node(transform=scale((1,8,1)))
+        base_shape.add(cylinder)
+
+        second_cylinder = Node(transform=scale((1.5,8,1.5)))
+        second_cylinder.add(cylinder)
+
+
+        # --- Make 4 leaves
+        leaf_1 = Node(transform=scale((0.06,0.05,0.05))@(translate(-5041.9, 13,-1105)))
+        leaf_1.add(leaf)    # the standard one
+
+        leaf_2 = Node(transform=scale((0.04,0.06,0.06))@(translate(-5041.9, 13,-1105)))
+        leaf_2.add(leaf)    # a bigger one
+
+        leaf_3 = Node(transform=scale((0.05,0.03,0.03))@(translate(-5041.9, 13,-1105)))
+        leaf_3.add(leaf)    # a curvier and smaller one
+
+        leaf_4 = Node(transform=scale((0.05,0.08,0.05))@(translate(-5041.9, 13,-1105)))
+        leaf_4.add(leaf)    # a longer and bigger one
+
+        # ------------------------ Creation of items ---------------------------
+        phi2 = 90.0        # second leaf angle
+        phi3 = 180.0         # ...
+        phi4 = 270.0         # ...
+
+        # --- For leaf 4
+        transform_leaf4 = Node(transform=rotate((0,1,0), phi4)@translate(0,7.2,0),
+                               children=[leaf_4])
+
+        # -- For leaf 3
+        transform_leaf3 = Node(transform=rotate((0,1,0), phi3)@translate(0,7.5,0),
+                            children=[leaf_1])
+
+        # -- For leaf 2
+        transform_leaf2 = Node(transform=rotate((0,1,0), phi2)@translate(0,7.5,0), children=[leaf_2])
+        
+        # -- For leaf 1
+        transform_leaf1 = Node(transform=translate(0,7.5,0), children=[leaf_1] )
+
+        # ----------------------- Hierarchy of the tree -------------------------
+        leaves = Node(children=[transform_leaf1, transform_leaf2, transform_leaf3, transform_leaf4])
+
+        transform_cyl = Node(transform=translate(0,12,0))
+        transform_cyl.add(base_shape, leaves)
+
+        transform_base = Node(transform=translate(0,8,0)@rotate((1,0,0), 90))
+        transform_base.add(second_cylinder, transform_cyl) # notre arbre final
+
+        self.add(transform_base)
 
 
 class AnimatedTree(Node):

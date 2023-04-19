@@ -12,9 +12,10 @@ from assets.Volcano.volcano import Volcano
 from assets.Water.water import Water
 from core import Mesh, Shader, Viewer, load, Node
 from texture import Texture, Textured
-from transform import compute_normals, scale, translate
+from transform import compute_normals, scale, translate, rotate
 
 from floor import Floor
+from arbre import Tree
 
 
 
@@ -88,9 +89,9 @@ def main():
             ],
         )
     )
-
+    tree0 = Tree(transform=translate((-200,-100,100))@scale((0.3,0.3,0.3)))
     floor = Node(transform=scale((0.008,0.008,0.008)), children=[Floor(shader, "img/cayu.jpg", "img/flowers.png")])
-    volcano = Node(transform=scale((3,3,3))@translate((0,0,-320)), children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg"), floor])
+    volcano = Node(transform=scale((3,3,3))@translate((0,0,-350)), children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg"), floor, tree0])
     viewer.add(volcano)
     viewer.add(Water(water_shader))
 
