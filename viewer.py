@@ -10,9 +10,9 @@ from perlin_noise import PerlinNoise  # pip install perlin-noise
 from assets.Skybox.skybox import Skybox
 from assets.Volcano.volcano import Volcano
 from assets.Water.water import Water
-from core import Mesh, Shader, Viewer, load
+from core import Mesh, Shader, Viewer, load, Node
 from texture import Texture, Textured
-from transform import compute_normals
+from transform import compute_normals, scale, translate
 
 from floor import Floor
 
@@ -89,9 +89,10 @@ def main():
         )
     )
 
-    viewer.add(Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg"))
+    floor = Node(transform=scale((0.008,0.008,0.008)), children=[Floor(shader, "img/cayu.jpg", "img/flowers.png")])
+    volcano = Node(transform=scale((3,3,3))@translate((0,0,-320)), children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg"), floor])
+    viewer.add(volcano)
     viewer.add(Water(water_shader))
-    # viewer.add(Floor(shader, "img/cayu.jpg", "img/flowers.png"))
 
     # start rendering loop
     viewer.run()
