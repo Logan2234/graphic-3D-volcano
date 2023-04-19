@@ -2,7 +2,7 @@
 
 import sys
 
-from arbre import Tree
+from arbre import Tree, AnimatedTree
 from assets.Skybox.skybox import Skybox
 from assets.Volcano.volcano import Volcano
 from assets.Water.water import Water
@@ -42,11 +42,17 @@ def main():
             ],
         )
     )
-    tree0 = Tree(transform=translate((-200,-100,100))@scale((0.3,0.3,0.3)))
-    floor = Node(children=[Floor(shader, "img/cayu.jpg", "img/flowers.png")])
-    volcano = Node(children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg"), floor, tree0])
-    viewer.add(volcano)
-    viewer.add(Water(water_shader))
+    # ----- Some trees
+
+    treesStatic = Node(children=[Tree(transform= translate((-200+120*i,((-1)**i)*(-200 + 120*i),15))
+                                    @scale((0.8,0.8,0.8))) for i in range(4)])
+    treesAnimated = Node(children=[AnimatedTree(transform= translate((200-120*i,((-1)**i)*(200 - 120*i),15))
+                                    @scale((0.8,0.8,0.8))) for i in range(4)])
+    #floor = Node(children=[Floor(shader, "img/cayu.jpg", "img/flowers.png")])
+    #volcano = Node(children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg")])
+    island = Node(children = [treesStatic, treesAnimated])
+    viewer.add(island)
+    #viewer.add(Water(water_shader))
 
     # start rendering loop
     viewer.run()
