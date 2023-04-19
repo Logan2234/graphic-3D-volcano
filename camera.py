@@ -14,10 +14,11 @@ class Camera:
 
     def __init__(self):
         # camera Attributes
-        self.position = vec(-910.0, -1050.0, -1010.0)
-        self.front = vec(0.6, 0.76, -0.2)
-        self.up = vec(0.14, 0.17, 0.97)
-        self.right = vec(0.78, -0.6, 0.0)
+        # self.position = vec(-1200.0, -1250.0, -300.0)
+        self.position = vec(0, 0.0, 0.0)
+        self.front = vec(0, 0, 0)
+        self.up = vec(0, 0, 0)
+        self.right = vec(0, 0, 0)
         self.world_up = vec(0.0, 0.0, 1.0)
         # euler Angles
         self.yaw = 0

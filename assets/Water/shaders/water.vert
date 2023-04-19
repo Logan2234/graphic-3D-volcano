@@ -12,6 +12,7 @@ in vec3 tex_coord;
 out vec3 out_normal;
 out vec3 out_position;
 out vec2 frag_tex_coords;
+out vec4 view_space;
 
 void main() {
     vec3 new_pos = position;
@@ -26,8 +27,8 @@ void main() {
 
     out_normal = mat3(transpose(inverse(model))) * normal;
     out_normal.xy = vec2(sin(offset / 2 + time / 2));
-    out_normal = normalize(out_normal);
 
     frag_tex_coords = tex_coord.xy;
-    gl_Position = projection * view * model * vec4(new_pos, 1.0);
+    view_space = view * model * vec4(new_pos, 1);
+    gl_Position = projection * view_space;
 }
