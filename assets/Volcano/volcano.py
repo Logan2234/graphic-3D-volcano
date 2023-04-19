@@ -13,6 +13,7 @@ from transform import compute_normals, create_grid
 noise1 = PerlinNoise(octaves=3, seed=3)
 noise2 = PerlinNoise(octaves=6, seed=2)
 
+
 def get_altitude(x, y, puissance, taille):
     """Returns the altitude computed with perlin noise"""
     if (
@@ -30,28 +31,30 @@ def get_altitude(x, y, puissance, taille):
         return out
     return Math.pow(out, puissance)
 
+
 def smooth(points, size):
     """Applique une fonction de lissage sur un ensemble de points 3D."""
-
-    for i in range(2 * size + 2, len(points) - (2 * size + 1)):
-        if i % (2 * size + 1) == 0 or i % (2 * size) == 0:
+    for i in range(2 * size + 1, len(points) - (2 * size + 1)):
+        if i % (2 * size + 1) == 0:
+            continue
+        if i % (2 * size + 1) == 2 * size:
             continue
 
         voisins_directs = 2 * np.array(
             [
                 2 * points[i],
-                points[i + 1],
                 points[i - 1],
-                points[i - (2 * size + 1)],
+                points[i + 1],
                 points[i + (2 * size + 1)],
+                points[i - (2 * size + 1)],
             ]
         )
         voisins_diagonale = np.array(
             [
-                points[i - (2 * size - 2)],
-                points[i - 2 * size],
-                points[i + 2 * size],
-                points[i + (2 * size + 1)],
+                points[i - (2 * size)],
+                points[i - (2 * size + 2)],
+                points[i + (2 * size)],
+                points[i + (2 * size + 2)],
             ]
         )
 
