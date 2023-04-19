@@ -18,7 +18,7 @@ class Water(Textured):
         self.shader = shader
         self.tex = Texture("img/water.jpg", GL.GL_REPEAT, GL.GL_NEAREST, GL.GL_NEAREST)
 
-        self.positions, self.indices = create_grid(self.taille, True, -100)
+        self.positions, self.indices = create_grid(self.taille, True, -30)
         self.positions = self.positions * self.scale
         self.normal = compute_normals(self.positions, self.indices)
         self.mesh = Mesh(

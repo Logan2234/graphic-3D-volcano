@@ -29,7 +29,7 @@ const vec3 RimColor=vec3(.2,.2,.2);
 in vec3 world_pos;
 in vec3 world_normal;
 in vec4 viewSpace;
-in vec2 texcoord;
+in vec2 out_texcoord;
 
 //0 linear; 1 exponential; 2 exponential square
 const int fogSelector = 1;
@@ -40,8 +40,8 @@ const float FogDensity=.005;
 
 void main(){
 
-    vec4 tex1=texture(diffuse_map, texcoord);
-    vec4 tex2=texture(diffuse_map_2, texcoord);
+    vec4 tex1 = texture(diffuse_map, out_texcoord);
+    vec4 tex2 = texture(diffuse_map_2, out_texcoord);
 
     //get light an view directions
     vec3 L=normalize(light_position-world_pos);

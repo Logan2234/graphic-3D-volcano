@@ -31,7 +31,7 @@ class Volcano(Textured):
     """Simple first textured object"""
 
     def __init__(self, shader, tex_file, tex_file2):
-        self.taille = 60
+        self.taille = 80
 
         self.wrap = GL.GL_REPEAT
         self.filter = (GL.GL_LINEAR, GL.GL_LINEAR_MIPMAP_LINEAR)
@@ -39,6 +39,7 @@ class Volcano(Textured):
         self.file2 = tex_file2
 
         base_coords, indices = create_grid(self.taille)
+        base_coords = 2 * base_coords
 
         for i, point in enumerate(base_coords):
             x_pos, y_pos = i % (2 * self.taille + 1), i // (2 * self.taille + 1)

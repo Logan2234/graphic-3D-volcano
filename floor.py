@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-from texture import Texture, Textured
 import math as Math
 from itertools import cycle
-import OpenGL.GL as GL              # standard Python OpenGL wrapper
+
+import numpy as np  # all matrix manipulations & OpenGL args
+import OpenGL.GL as GL  # standard Python OpenGL wrapper
+from perlin_noise import PerlinNoise  # pip install perlin-noise
+
 from core import Mesh
-import numpy as np                  # all matrix manipulations & OpenGL args
-from perlin_noise import PerlinNoise # pip install perlin-noise
+from texture import Texture, Textured
 
 noise1 = PerlinNoise(octaves=3)
 noise2 = PerlinNoise(octaves=6)
@@ -39,9 +41,9 @@ class Floor(Textured):
             for j in range(-150, 151):
                 positions.append((i, j, 0))
                 tex_coords.append(((150 + i) * 3 / 150, (150 + j) * 3 / 150))
-        
+
         longueur_rectangle = len(positions) - longueur_base
-        
+
         for i in range(-180, -149):
             for j in range(-150, 151):
                 positions.append((i, j, 0))
@@ -58,7 +60,7 @@ class Floor(Textured):
                 tex_coords.append(((150 + i) * 3 / 150, (150 + j) * 3 / 150))
 
         # Coins supérieurs
-                
+
         positions.append((150, 150, 0))
         tex_coords.append((6, 6))
         for i in range(20):
@@ -92,7 +94,7 @@ class Floor(Textured):
             tex_coords.append(((150 + 150 + 30 * np.cos(2 * np.pi * (i + 1) / 40)) * 3 / 150, (150 + -150 - 30 * np.sin(2 * np.pi * (i + 1) / 40)) * 3 / 150))
 
         # Coins inférieurs
-                
+
         positions.append((120, 120, -30))
         tex_coords.append((5.4, 5.4))
         for i in range(20):
@@ -131,7 +133,7 @@ class Floor(Textured):
             positions.append((i, -150, -30))
             tex_coords.append(((150 + i) * 3 / 150, 0))
 
-        
+
         for i in range(-120, 121): # Bord supérieur nord
             if i < 0:
                 positions.append((Math.floor(i*150/120), -180, 0))
@@ -139,11 +141,11 @@ class Floor(Textured):
             else :
                 positions.append((Math.ceil(i*150/120), -180, 0))
                 tex_coords.append(((150 + Math.ceil(i*150/120)) * 3 / 150, -0.6))
-            
+
         for i in range(-120, 121): # Bord inférieur est
             positions.append((150, i, -30))
             tex_coords.append((6, (150 + i) * 3 / 150))
-        
+
         for i in range(-120, 121): # Bord supérieur est
             if i < 0:
                 positions.append((180, Math.floor(i*150/120), 0))
@@ -151,7 +153,7 @@ class Floor(Textured):
             else :
                 positions.append((180, Math.ceil(i*150/120), 0))
                 tex_coords.append((6.6, (150 + Math.ceil(i*150/120)) * 3 / 150))
-            
+
         for i in range(-120, 121): # Bord inférieur sud
             positions.append((i, 150, -30))
             tex_coords.append(((150 + i) * 3 / 150, 6))
@@ -167,7 +169,7 @@ class Floor(Textured):
         for i in range(-120, 121): # Bord inférieur ouest
             positions.append((-150, i, -30))
             tex_coords.append((0, (150 + i) * 3 / 150))
-        
+
         for i in range(-120, 121): # Bord supérieur ouest
             if i < 0:
                 positions.append((-180, Math.floor(i*150/120), 0))
@@ -183,14 +185,14 @@ class Floor(Textured):
                 tex_coords.append(((150 + i) * 3 / 150, (150 + j) * 3 / 150))
 
         # Rectangles extérieurs inférieurs
- 
+
         for i in range(120, 151):
             for j in range(-120, 121):
                 positions.append((i, j, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j)))
                 tex_coords.append(((150 + i) * 3 / 150, (150 + j) * 3 / 150))
 
         longueur_petit_rectangles = len(positions)
-        
+
         for i in range(-150, -119):
             for j in range(-120, 121):
                 positions.append((i, j, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j)))
@@ -205,9 +207,9 @@ class Floor(Textured):
             for j in range(120, 151):
                 positions.append((i, j, -30 - 150 * self.getAltitude(i, j, 0.15) * self.smoothStep(0, 150, i, j)))
                 tex_coords.append(((150 + i) * 3 / 150, (150 + j) * 3 / 150))
-        
+
         # Coins inférieurs
-                
+
         positions.append((120, 120, -30))
         tex_coords.append((5.4, 5.4))
         for i in range(20):
@@ -239,8 +241,8 @@ class Floor(Textured):
             tex_coords.append(((150 + 120 + 30 * np.cos(2 * np.pi * i / 40)) * 3 / 150, (150 + -120 - 30 * np.sin(2 * np.pi * i / 40)) * 3 / 150))
             positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40), -30))
             tex_coords.append(((150 + 120 + 30 * np.cos(2 * np.pi * (i + 1) / 40)) * 3 / 150, (150 + -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40)) * 3 / 150))
-        
-        scaled = 100 * np.array(positions, np.float32)
+
+        scaled = 1.5 * np.array(positions, np.float32)
         indices = []
         for i in range(300):
             for j in range(300):
@@ -304,7 +306,7 @@ class Floor(Textured):
             indices.append(longueur_base)
             indices.append(longueur_base + i+1)
             indices.append(longueur_base + i)
-        
+
         longueur_base += 41
         for i in range(20):
             indices.append(longueur_base)
@@ -316,7 +318,7 @@ class Floor(Textured):
             indices.append(longueur_base)
             indices.append(longueur_base + i+1)
             indices.append(longueur_base + i)
-        
+
         longueur_base += 41
         for i in range(20):
             indices.append(longueur_base + i)
@@ -343,7 +345,7 @@ class Floor(Textured):
             indices.append(longueur_base + i + 1)
             indices.append(longueur_base + i + 1 - 164)
             indices.append(longueur_base + i)
-        
+
         longueur_base += 41
         for i in range(20):
             indices.append(longueur_base + i)
@@ -457,7 +459,7 @@ class Floor(Textured):
             indices.append(longueur_base)
             indices.append(longueur_base + i)
             indices.append(longueur_base + i+1)
-        
+
         longueur_base += 41
         for i in range(20):
             indices.append(longueur_base)
@@ -469,10 +471,10 @@ class Floor(Textured):
             indices.append(longueur_base)
             indices.append(longueur_base + i)
             indices.append(longueur_base + i+1)
-        
+
         longueur_base += 41
 
-        
+
 
         indices = np.array(indices, np.uint32)
         mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=tex_coords), index=indices)
@@ -491,20 +493,20 @@ class Floor(Textured):
             y = edgeLeft
         if y > edgeRight:
             y = edgeRight
-        
+
         tx = (x - edgeLeft) / (edgeRight - edgeLeft)
         ty = (y - edgeLeft) / (edgeRight - edgeLeft)
 
         if (tx + ty == 0):
             return 1
-        
+
         t = np.sqrt(tx*tx + ty*ty)
 
         if t >= 1:
             return 0
 
         return 2 * Math.pow(t, 3) - 3 * Math.pow(t, 2) + 1
-        
+
     def getAltitude(self, x, y, puissance):
         #return np.sin(x+np.cos(y))+0.5 * np.sin(2+y+np.cos(2 * x))+0.4
         nx = x/100
