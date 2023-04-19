@@ -25,7 +25,7 @@ class Cylinder(Node):
 class Tree(Node):
     """ Hierchical element with a static version """
     def __init__(self, children=(), transform=identity()):
-        super().__init__(children=(), transform=identity())
+        super().__init__(children=children, transform=transform)
 
         # ------------------------------ Constants used --------------------------
         cylinder = Cylinder(Shader("texture.vert", "texture.frag"))
@@ -85,8 +85,8 @@ class Tree(Node):
 
 class AnimatedTree(Node):
     """ Hierchical element of the scene taht will be animated"""
-    def __init__(self):
-        super().__init__()
+    def __init__(self, children=(), transform=identity()):
+        super().__init__(children=children, transform=transform)
 
         # ------------------------------ Constants used --------------------------
         cylinder = Cylinder(Shader("texture.vert", "texture.frag"))
@@ -164,7 +164,7 @@ class AnimatedTree(Node):
         transform_cyl = Node(transform=translate(0,12,0))
         transform_cyl.add(base_shape, leaves)
 
-        transform_base = Node(transform=translate(0,8,0))
+        transform_base = Node(transform=translate(0,8,0)@rotate((1,0,0), 90))
         transform_base.add(second_cylinder, transform_cyl) # notre arbre final
 
 
@@ -172,8 +172,8 @@ class AnimatedTree(Node):
 
         # --- For the whole tree
         translate_keys = {0: vec(0, 0, 0), 2: vec(0, 0, 0), 3: vec(0, -2, 0) , 4: vec(0, 0, 0)}
-        rotate_keys = {0: quaternion(), 2: quaternion_from_euler(0, 180, 0),
-                    3: quaternion_from_euler(0, 280, 0), 4: quaternion_from_euler(0,360,0),
+        rotate_keys = {0: quaternion(), 2: quaternion_from_euler(180, 0, 0),
+                    3: quaternion_from_euler(280, 0, 0), 4: quaternion_from_euler(360,0,0),
                     5: quaternion()}
         scale_keys = {0: 1, 1:0.8, 2:1, 5:1 }
         keynode = KeyFrameControlNode(translate_keys, rotate_keys, scale_keys)
