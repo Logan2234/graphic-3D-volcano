@@ -8,17 +8,12 @@ from perlin_noise import PerlinNoise  # pip install perlin-noise
 
 from core import Mesh
 from texture import Texture, Textured
+from transform import compute_normals
 
 class Disk(Textured):
      """ Disk for inside the volcano """
-     def __init__(self, shader, tex_file, tex_file2, radius, height):
-        # prepare texture modes cycling variables for interactive toggling
-        self.wraps = cycle([GL.GL_REPEAT, GL.GL_MIRRORED_REPEAT,
-                            GL.GL_CLAMP_TO_BORDER, GL.GL_CLAMP_TO_EDGE])
-        self.filters = cycle([(GL.GL_NEAREST, GL.GL_NEAREST),
-                              (GL.GL_LINEAR, GL.GL_LINEAR),
-                              (GL.GL_LINEAR, GL.GL_LINEAR_MIPMAP_LINEAR)])
-        self.wrap, self.filter = next(self.wraps), next(self.filters)
+     def __init__(self, shader, tex_file, radius, height):
+        self.wrap, self.filter = GL.GL_REPEAT, (GL.GL_LINEAR, GL.GL_LINEAR_MIPMAP_LINEAR)
         self.file = tex_file
 
         base_coords = [(0, 0, height)]
@@ -41,9 +36,8 @@ class Disk(Textured):
         indices.append(0)
         indices.append(40)
         indices.append(1)
-        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=tex_coords), index=np.array(indices, np.uint32))
 
-        # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
+        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=tex_coords, normal=compute_normals(scaled, indices)), index=np.array(indices, np.uint32))
+
         texture = Texture(tex_file, self.wrap, *self.filter)
-        texture2 = Texture(tex_file2, self.wrap, *self.filter)
-        super().__init__(mesh, diffuse_map=texture, tex2=texture2)
+        super().__init__(mesh, tex=texture)

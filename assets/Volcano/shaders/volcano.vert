@@ -1,14 +1,9 @@
 #version 330 core
 
-// global color
-// uniform vec3 global_color;
-
-// input attribute variable, given per vertex
 in vec3 position;
 in vec3 tex_coord;
 in vec3 normal;
 
-// global matrix variables
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -17,6 +12,7 @@ uniform mat4 projection;
 out vec2 frag_tex_coords;
 out float dirt_coef;
 out float mix_coef;
+
 // Light
 out vec3 out_normal;
 out vec3 frag_pos;

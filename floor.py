@@ -8,6 +8,7 @@ from perlin_noise import PerlinNoise  # pip install perlin-noise
 
 from core import Mesh
 from texture import Texture, Textured
+from transform import compute_normals
 
 noise1 = PerlinNoise(octaves=3)
 noise2 = PerlinNoise(octaves=6)
@@ -15,15 +16,11 @@ noise3 = PerlinNoise(octaves=12)
 
 class Floor(Textured):
     """ Simple first textured object """
-    def __init__(self, shader, tex_file, tex_file2):
-        # prepare texture modes cycling variables for interactive toggling
-        self.wraps = cycle([GL.GL_REPEAT, GL.GL_MIRRORED_REPEAT,
-                            GL.GL_CLAMP_TO_BORDER, GL.GL_CLAMP_TO_EDGE])
-        self.filters = cycle([(GL.GL_NEAREST, GL.GL_NEAREST),
-                              (GL.GL_LINEAR, GL.GL_LINEAR),
-                              (GL.GL_LINEAR, GL.GL_LINEAR_MIPMAP_LINEAR)])
-        self.wrap, self.filter = next(self.wraps), next(self.filters)
+    def __init__(self, shader, tex_file, tex_file2, tex_file3):
+        self.wrap, self.filter = GL.GL_REPEAT, (GL.GL_LINEAR, GL.GL_LINEAR_MIPMAP_LINEAR)
         self.file = tex_file
+        self.file2 = tex_file2
+        self.file3 = tex_file3
 
         # setup plane mesh to be textured
         positions = []
@@ -242,7 +239,8 @@ class Floor(Textured):
             positions.append((120 + 30 * np.cos(2 * np.pi * (i + 1) / 40), -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40), -30))
             tex_coords.append(((150 + 120 + 30 * np.cos(2 * np.pi * (i + 1) / 40)) * 3 / 150, (150 + -120 - 30 * np.sin(2 * np.pi * (i + 1) / 40)) * 3 / 150))
 
-        scaled = 1.5 * np.array(positions, np.float32)
+        scaled = 2 * np.array(positions, np.float32)
+        
         indices = []
         for i in range(300):
             for j in range(300):
@@ -474,14 +472,15 @@ class Floor(Textured):
 
         longueur_base += 41
 
-
-
         indices = np.array(indices, np.uint32)
-        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=tex_coords), index=indices)
+
+        mesh = Mesh(shader, attributes=dict(position=scaled, tex_coord=tex_coords, normal=compute_normals(scaled, indices)), index=indices)
 
         # setup & upload texture to GPU, bind it to shader name 'diffuse_map'
-        texture = Texture(tex_file, self.wrap, *self.filter)
-        super().__init__(mesh, diffuse_map=texture)
+        texture = Texture(self.file, self.wrap, *self.filter)
+        texture2 = Texture(self.file2, self.wrap, *self.filter)
+        texture3 = Texture(self.file3, self.wrap, *self.filter)
+        super().__init__(mesh, tex=texture, tex2=texture2, tex3=texture3)
 
     def smoothStep(self, edgeLeft, edgeRight, x, y):
         x, y = abs(x), abs(y)

@@ -17,7 +17,7 @@ import numpy as np  # matrices, vectors & quaternions are numpy arrays
 def compute_normals(base_coords, indices):
     """Compute the normals of each vertex of base_coords with the given indices"""
     normals = [[0, 0, 0] for _ in range(len(base_coords))]
-    if isinstance(indices[0], int):
+    if isinstance(indices[0], int) or isinstance(indices[0], np.uint32):
         indices = np.array_split(indices, len(indices) / 3)
     for a, b, c in indices:
         v1 = np.subtract(base_coords[b], base_coords[a])

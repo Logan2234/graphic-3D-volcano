@@ -9,22 +9,21 @@ from assets.Water.water import Water
 from core import Node, Shader, Viewer, load
 from floor import Floor
 from transform import scale, translate
-from Disk import Disk
-
+from disk import Disk
 
 def main():
     """create a window, add scene objects, then run rendering loop"""
     viewer = Viewer()
-    shader_fog = Shader("fog.vert", "fog.frag")
-    shader = Shader("texture.vert", "texture.frag")
-    shader_color = Shader("color.vert", "color.frag")
 
+    floor_shader = Shader("floor.vert", "floor.frag")
+    lava_shader = Shader("lava.vert", "lava.frag")
     water_shader = Shader("assets/Water/shaders/water.vert", "assets/Water/shaders/water.frag")
 
     skybox_shader = Shader(
         "assets/Skybox/shaders/skybox.vert", "assets/Skybox/shaders/skybox.frag"
     )
-    shader_volcano = Shader(
+
+    volcano_shader = Shader(
         "assets/Volcano/shaders/volcano.vert", "assets/Volcano/shaders/volcano.frag"
     )
 
@@ -50,17 +49,16 @@ def main():
     trees2 = Node(children=[AnimatedTree(transform= translate((200-120*i,((-1)**i)*(200 - 120*i), 5))
                                     @scale((0.8,0.8,0.8))) for i in range(4)])
 
-    floor = Node(children=[Floor(shader, "img/cayu.jpg", "img/terre.jpeg")])
-    lava = Node(children = [Disk(shader, "img/lava.jpg", "img/lava.jpg", 20, 150)])
-    volcano = Node(children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg"), lava])
-    island = Node(children = [floor, volcano, trees, trees2])
+    lava = Node(children = [Disk(lava_shader, "img/lava.jpg", 20, 150)])
+    volcano = Node(children=[Volcano(volcano_shader, "img/grass.png", "img/basalte.jpg"), lava])
+    floor = Node(children=[Floor(floor_shader, "img/rock.png", "img/terre.jpeg", "img/grass.png"), volcano])
+    island = Node(children = [floor])
 
     viewer.add(island)
     viewer.add(Water(water_shader))
 
     # start rendering loop
     viewer.run()
-
 
 if __name__ == "__main__":
     main()  # main function keeps variables locally scoped

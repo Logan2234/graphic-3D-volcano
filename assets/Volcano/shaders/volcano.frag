@@ -61,9 +61,10 @@ void main() {
     vec3 lightDirLava = normalize(lavaPos - frag_pos);
     float diffLava = max(dot(norm, lightDirLava), 0.0);
     float diffuseLava = K_d * diffLava;
+
     // Attenuation of point light
     float distance = length(lightDirLava - frag_pos);
-    float attenuation = 1.0 / (1.0 + 0.007 * distance + 0.0002 * (distance * distance));
+    float attenuation = 1.0 / (1.0 + 0.005 * distance + 0.00008 * (distance * distance));
 
     vec3 color = colorWithDirLight;
 
@@ -73,7 +74,7 @@ void main() {
     // Fog
     float dist = length(view_space);
     float fogFactor = 1. / exp(pow(dist * FogDensity, 2));
-    fogFactor = clamp(fogFactor, 0.1, 1);
+    fogFactor = clamp(fogFactor, 0.05, 1);
 
     vec3 finalColor = mix(fogColor, color, fogFactor);
     out_color = vec4(finalColor, 1);
