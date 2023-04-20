@@ -9,6 +9,7 @@ from assets.Water.water import Water
 from core import Node, Shader, Viewer, load
 from floor import Floor
 from transform import scale, translate
+from Disk import Disk
 
 
 def main():
@@ -50,8 +51,10 @@ def main():
                                     @scale((0.8,0.8,0.8))) for i in range(4)])
 
     floor = Node(children=[Floor(shader, "img/cayu.jpg", "img/terre.jpeg")])
-    volcano = Node(children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg")])
+    lava = Node(children = [Disk(shader, "img/lava.jpg", "img/lava.jpg", 20, 150)])
+    volcano = Node(children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg"), lava])
     island = Node(children = [floor, volcano, trees, trees2])
+
     viewer.add(island)
     viewer.add(Water(water_shader))
 
