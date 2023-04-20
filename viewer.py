@@ -9,6 +9,7 @@ from assets.Water.water import Water
 from core import Node, Shader, Viewer, load
 from floor import Floor
 from transform import scale, translate
+from smoke import SmokeParticle, Smoke
 
 
 def main():
@@ -29,33 +30,35 @@ def main():
 
     viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
 
-    viewer.add(
-        Skybox(
-            skybox_shader,
-            [
-                "img/cubemaps/right.png",
-                "img/cubemaps/left.png",
-                "img/cubemaps/top.png",
-                "img/cubemaps/bottom.png",
-                "img/cubemaps/front.png",
-                "img/cubemaps/back.png",
-            ],
-        )
-    )
+    # viewer.add(
+    #     Skybox(
+    #         skybox_shader,
+    #         [
+    #             "img/cubemaps/right.png",
+    #             "img/cubemaps/left.png",
+    #             "img/cubemaps/top.png",
+    #             "img/cubemaps/bottom.png",
+    #             "img/cubemaps/front.png",
+    #             "img/cubemaps/back.png",
+    #         ],
+    #     )
+    # )
     # ----- Some trees
 
-    treesStatic = Node(children=[Tree(transform= translate((-200+120*i,((-1)**i)*(-200 + 120*i),15))
-                                    @scale((0.8,0.8,0.8))) for i in range(4)])
-    treesAnimated = Node(children=[AnimatedTree(transform= translate((200-120*i,((-1)**i)*(200 - 120*i),15))
-                                    @scale((0.8,0.8,0.8))) for i in range(4)])
-    #floor = Node(children=[Floor(shader, "img/cayu.jpg", "img/flowers.png")])
-    #volcano = Node(children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg")])
-    island = Node(children = [treesStatic, treesAnimated])
-    viewer.add(island)
+    # treesStatic = Node(children=[Tree(transform= translate((-200+120*i,((-1)**i)*(-200 + 120*i),15))
+    #                                 @scale((0.8,0.8,0.8))) for i in range(4)])
+    # treesAnimated = Node(children=[AnimatedTree(transform= translate((200-120*i,((-1)**i)*(200 - 120*i),15))
+    #                                 @scale((0.8,0.8,0.8))) for i in range(4)])
+    # #floor = Node(children=[Floor(shader, "img/cayu.jpg", "img/flowers.png")])
+    # #volcano = Node(children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg")])
+    # island = Node(children = [treesStatic, treesAnimated])
+    # viewer.add(island)
     #viewer.add(Water(water_shader))
+    smoke = Smoke(Shader("color.vert", "smoke.frag"))
+    viewer.add(smoke)
 
     # start rendering loop
-    viewer.run()
+    viewer.run(Smoke.update, smoke)
 
 
 if __name__ == "__main__":
