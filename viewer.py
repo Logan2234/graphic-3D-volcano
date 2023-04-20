@@ -9,6 +9,7 @@ from assets.Water.water import Water
 from core import Node, Shader, Viewer, load
 from floor import Floor
 from transform import scale, translate
+from Disk import Disk
 
 
 def main():
@@ -49,8 +50,10 @@ def main():
     # treesAnimated = Node(children=[AnimatedTree(transform= translate((200-120*i,((-1)**i)*(200 - 120*i),15))
     #                                 @scale((0.8,0.8,0.8))) for i in range(4)])
     #floor = Node(children=[Floor(shader, "img/cayu.jpg", "img/flowers.png")])
+    lava = Node(children = [Disk(shader, "img/lava.jpg", "img/lava.jpg", 20, 150)])
     volcano = Node(children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg")])
     island = Node(children = [volcano])
+    volcano.add(lava)
     viewer.add(island)
     # viewer.add(Water(water_shader))
 
