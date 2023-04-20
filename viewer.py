@@ -42,17 +42,18 @@ def main():
             ],
         )
     )
-    # ----- Some trees
 
-    # treesStatic = Node(children=[Tree(transform= translate((-200+120*i,((-1)**i)*(-200 + 120*i),15))
-    #                                 @scale((0.8,0.8,0.8))) for i in range(4)])
-    # treesAnimated = Node(children=[AnimatedTree(transform= translate((200-120*i,((-1)**i)*(200 - 120*i),15))
-    #                                 @scale((0.8,0.8,0.8))) for i in range(4)])
-    #floor = Node(children=[Floor(shader, "img/cayu.jpg", "img/flowers.png")])
+    ##### Some trees #####
+    trees = Node(children=[AnimatedTree(transform= translate((-200+120*i,((-1)**i)*(-200 + 140*i), 5))
+                                    @scale((0.8,0.8,0.8))) for i in range(4)])
+    trees2 = Node(children=[AnimatedTree(transform= translate((200-120*i,((-1)**i)*(200 - 120*i), 5))
+                                    @scale((0.8,0.8,0.8))) for i in range(4)])
+
+    floor = Node(children=[Floor(shader, "img/cayu.jpg", "img/terre.jpeg")])
     volcano = Node(children=[Volcano(shader_volcano, "img/grass.png", "img/basalte.jpg")])
-    island = Node(children = [volcano])
+    island = Node(children = [floor, volcano, trees, trees2])
     viewer.add(island)
-    # viewer.add(Water(water_shader))
+    viewer.add(Water(water_shader))
 
     # start rendering loop
     viewer.run()
