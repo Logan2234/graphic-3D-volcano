@@ -27,8 +27,6 @@ def main():
         "assets/Volcano/shaders/volcano.vert", "assets/Volcano/shaders/volcano.frag"
     )
 
-    viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
-
     viewer.add(
         Skybox(
             skybox_shader,
