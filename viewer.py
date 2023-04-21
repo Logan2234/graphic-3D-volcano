@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-import sys
 
 from arbre import AnimatedTree, Tree
 from assets.Skybox.skybox import Skybox
 from assets.Volcano.volcano import Volcano
 from assets.Water.water import Water
-from core import Node, Shader, Viewer, load
+from core import Node, Shader, Viewer
 from floor import Floor
 from transform import scale, translate
 from disk import Disk

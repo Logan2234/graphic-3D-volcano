@@ -44,7 +44,7 @@ class SmokeParticle(Mesh):
         self.k = 0.01 * random.random() * random.choice([-1,1]) #how fast x velocity changes and in which direction
         
         attributes = dict(position=self.position, color=color, alpha=self.alpha)
-        super().__init__(Shader("color.vert", "smoke.frag"), attributes=attributes)
+        super().__init__(Shader("smoke.vert", "smoke.frag"), attributes=attributes)
 
     def draw(self, primitives=GL.GL_TRIANGLES, attributes=None, **uniforms):
         super().draw(primitives=primitives, global_color=self.color, 
