@@ -28,8 +28,8 @@ class Tree(Node):
         super().__init__(children=children, transform=transform)
 
         # ------------------------------ Constants used --------------------------
-        cylinder = Cylinder(Shader("texture.vert", "texture.frag"))
-        leaf = Leaf(Shader("texture.vert", "texture.frag"))
+        cylinder = Cylinder(Shader("tree.vert", "tree.frag"))
+        leaf = Leaf(Shader("tree.vert", "tree.frag"))
 
         # --- Make two long cylinders
         base_shape = Node(transform=scale((1,8,1)))
@@ -89,8 +89,8 @@ class AnimatedTree(Node):
         super().__init__(children=children, transform=transform)
 
         # ------------------------------ Constants used --------------------------
-        cylinder = Cylinder(Shader("texture.vert", "texture.frag"))
-        leaf = Leaf(Shader("texture.vert", "texture.frag"))
+        cylinder = Cylinder(Shader("tree.vert", "tree.frag"))
+        leaf = Leaf(Shader("tree.vert", "tree.frag"))
 
         # --- Make two long cylinders
         base_shape = Node(transform=scale((1,8,1)))
