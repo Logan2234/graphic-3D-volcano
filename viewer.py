@@ -50,7 +50,8 @@ def main():
     trees = Node(
         children=[
             AnimatedTree(
-                transform=translate((-200 + 150 * i, ((-1) ** i) * (-200 + 120 * i),10))
+                transform=translate(
+                    (-200 + 150 * i, ((-1) ** i) * (-200 + 130 * i), 10))
                 @ scale((0.8, 0.8, 0.8))
             )
             for i in range(4)

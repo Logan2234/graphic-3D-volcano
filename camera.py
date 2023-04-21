@@ -9,13 +9,13 @@ CAMERA_NORMAL_MOVE = 0
 CAMERA_ROTATE_MOVE = 1
 CAMERA_PAN_MOVE = 2
 
+
 class Camera:
     """New camera class because apparently trackball wasn't... good enough :P"""
 
     def __init__(self):
         # camera Attributes
-        # self.position = vec(-1200.0, -1250.0, -300.0)
-        self.position = vec(0, 0.0, 0.0)
+        self.position = vec(-150, 200, 300)
         self.front = vec(0, 0, 0)
         self.up = vec(0, 0, 0)
         self.right = vec(0, 0, 0)
@@ -25,8 +25,8 @@ class Camera:
         # self.right = vec(0.78, -0.6, 0.0)
         self.world_up = vec(0.0, 0.0, 1.0)
         # euler Angles
-        self.yaw = 0
-        self.pitch = 0
+        self.yaw = 60
+        self.pitch = -25
         # camera options
         self.movement_speed = 20
         self.mouse_sensitivity = 0.1
@@ -39,7 +39,7 @@ class Camera:
 
     def get_view_matrix(self):
         """Returns the view matrix"""
-        #print(f"{self.position},{self.front},{self.up},{self.right}\n")
+        # print(f"{self.position},{self.front},{self.up},{self.right}\n")
         return lookat(self.position, self.position + self.front, self.up)
 
     def projection_matrix(self, win_size):
@@ -67,12 +67,17 @@ class Camera:
         yoffset *= self.mouse_sensitivity
 
         if move_mode == CAMERA_ROTATE_MOVE:
-        #     old, new = ((2*vec(pos) - winsize) / winsize for pos in (old, new))
-        #     self.rotation = quaternion_mul(self._rotate(old, new), self.rotation)
-        #     TODO
+            #     TODO
             return
         elif move_mode == CAMERA_PAN_MOVE:
-            self.position = np.add(self.position, vec(-xoffset*np.sin(np.radians(self.yaw)), -xoffset*np.cos(np.radians(self.yaw)), yoffset))
+            self.position = np.add(
+                self.position,
+                vec(
+                    -xoffset * np.sin(np.radians(self.yaw)),
+                    -xoffset * np.cos(np.radians(self.yaw)),
+                    yoffset,
+                ),
+            )
         else:
             self.yaw += xoffset
             self.pitch += yoffset
@@ -101,14 +106,18 @@ class Camera:
         self.front = vec(
             np.cos(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
             -np.sin(np.radians(self.yaw)) * np.cos(np.radians(self.pitch)),
-            np.sin(np.radians(self.pitch)))
+            np.sin(np.radians(self.pitch)),
+        )
         self.front = normalized(self.front)
         # also re-calculate the Right and Up vector
         self.right = normalized(np.cross(self.front, self.world_up))
         self.up = normalized(np.cross(self.right, self.front))
+        print(self.position)
+        print(self.yaw)
+        print(self.pitch)
 
     def changeSpeed(self, win):
-        """ Change the speed of the camera accordding to the key pressed """
+        """Change the speed of the camera accordding to the key pressed"""
         if glfw.get_key(win, glfw.KEY_KP_ADD):
             self.movement_speed += 1
         elif glfw.get_key(win, glfw.KEY_KP_SUBTRACT):
