@@ -362,7 +362,7 @@ def load(file, shader, tex_file=None, **params):
     return [root_node]
 
 
-# ------------  Viewer class & window management ------------------------------
+#------------  Viewer class & window management ------------------------------
 class Viewer(Node):
     """GLFW viewer window, with classic initialization & graphics loop"""
 
@@ -386,6 +386,7 @@ class Viewer(Node):
         self.first_mouse = True
         self.limit_fps = True
 
+
         # register event handlers
         glfw.set_key_callback(self.win, self.on_key)
         glfw.set_cursor_pos_callback(self.win, self.on_mouse_move)
@@ -402,7 +403,7 @@ class Viewer(Node):
 
         # initialize GL by setting viewport and default render characteristics
         GL.glClearColor(0.1, 0.1, 0.1, 0.1)
-        GL.glEnable(GL.GL_CULL_FACE)  # backface culling enabled (TP2)
+        GL.glEnable(GL.GL_CULL_FACE)   # TODO:pour le smoke le disable backface culling enabled (TP2)
         GL.glEnable(GL.GL_DEPTH_TEST)  # depth test now enabled (TP2)
 
         # cyclic iterator to easily toggle polygon rendering modes
@@ -437,6 +438,7 @@ class Viewer(Node):
                 # Poll for and process events
                 glfw.poll_events()
                 last_time = time.time()
+
 
     def on_key(self, win, key, _scancode, action, _mods):
         """'Q' or 'Escape' quits"""

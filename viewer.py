@@ -2,17 +2,16 @@
 
 """ Main file """
 
-import sys
-
 from arbre import AnimatedTree
 from assets.Skybox.skybox import Skybox
 from assets.Volcano.volcano import Volcano
 from assets.Water.water import Water
-from core import Node, Shader, Viewer, load
+from core import Node, Shader, Viewer
 from disk import Disk
 from floor import Floor
 from transform import scale, translate
 
+#from smoke import Smoke, SmokeParticle
 
 def main():
     """create a window, add scene objects, then run rendering loop"""
@@ -32,8 +31,6 @@ def main():
     volcano_shader = Shader(
         "assets/Volcano/shaders/volcano.vert", "assets/Volcano/shaders/volcano.frag"
     )
-
-    viewer.add(*[mesh for file in sys.argv[1:] for mesh in load(file, shader)])
 
     viewer.add(
         Skybox(
@@ -84,6 +81,10 @@ def main():
     island = Node(children=[floor, trees, trees2])
     viewer.add(island)
     viewer.add(Water(water_shader))
+
+    # smoke = Smoke()
+    # viewer.add(smoke)
+
     # start rendering loop
     viewer.run()
 
