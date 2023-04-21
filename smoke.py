@@ -1,97 +1,99 @@
 #!/usr/bin/env python3
 
-import pygame
+from OpenGL import GL
+
 import random
+from core import Mesh, Shader
+import numpy as np
 
-screen_width = 750
-screen_height = 650
+# screen_width = 750
+# screen_height = 650
 
-screen = pygame.display.set_mode((screen_width, screen_height))
+# screen = pygame.display.set_mode((screen_width, screen_height))
 
-clock = pygame.time.Clock()
+# clock = pygame.time.Clock()
 FPS = 60
 
 
-def scale(img: pygame.Surface, factor):
-    w, h = img.get_width() * factor, img.get_height() * factor
-    return pygame.transform.scale(img, (int(w), int(h)))
+class SmokeParticle(Mesh):
+    """Particule de fumée seule"""
+    def __init__(self, position=np.array((0,0,0)),
+                 velocity=np.array((0,0,0.2 + random.randint(1,10)/10), 'f')):
+        # ---------- Création du mesh -------
+        # ---- Points de l'étoile ----
+        A = (0,0,1)+position
+        B = (1,0,0)+position
+        C = (0,0,-1)+position
+        D = (-1,0,0)+position
+        E = (0,1,0)+position
+        F = (0,-1,0)+position
 
+        self.position = np.array((A,B,C, A,C,B,
+                                A,F,C, A,C,F,
+                                A,C,E, A,E,C,
+                                A,D,C, A,C,D), 'f')
+        color = np.full((24,3), .4,'f')
+        self.color = (0.2,0.2,0.2)
 
-IMAGE = pygame.image.load('img/smoke.png').convert_alpha()
+        # --------- Init des autres champs --------------
+        self.scale_k = 0.6 #size of the particle
+        self.alpha = 255 #oppacity of particule
+        self.alpha_rate = 1 #how fast oppacity increases => and how fast it will die
+        self.alive = True #if it should be drawn or not
+        self.velocity = velocity
+        self.k = 0.01 * random.random() * random.choice([-1,1]) #how fast x velocity changes and in which direction
+        
+        attributes = dict(position=self.position, color=color, alpha=self.alpha)
+        super().__init__(Shader("color.vert", "smoke.frag"), attributes=attributes)
 
-
-class SmokeParticle:
-    def __init__(self, x=screen_width // 2, y=screen_height // 2):
-        self.x = x
-        self.y = y
-        self.scale_k = 0.1
-        self.img = scale(IMAGE, self.scale_k)
-        self.alpha = 255
-        self.alpha_rate = 3
-        self.alive = True
-        self.vx = 0
-        self.vy = 4 + random.randint(7, 10) / 10
-        self.k = 0.01 * random.random() * random.choice([-1, 1])
+    def draw(self, primitives=GL.GL_TRIANGLES, attributes=None, **uniforms):
+        super().draw(primitives=primitives, global_color=self.color, 
+                     attributes=dict(position=self.position), **uniforms)
 
     def update(self):
-        self.x += self.vx
-        self.vx += self.k
-        self.y -= self.vy
-        self.vy *= 0.99
-        self.scale_k += 0.005
+        """Evolution des particules"""
+        if not self.alive:
+            return
+        self.position += self.velocity
+        # -- decrease alpha de alpha_rate
         self.alpha -= self.alpha_rate
-        if self.alpha < 0:
+        # -- if dead
+        if self.alpha <= 0:
             self.alpha = 0
             self.alive = False
-        self.alpha_rate -= 0.1
-        if self.alpha_rate < 1.5:
-            self.alpha_rate = 1.5
-        self.img = scale(IMAGE, self.scale_k)
-        self.img.set_alpha(self.alpha)
+        # -- decrease alpha_rate
+        self.alpha_rate = max(1.5, self.alpha_rate - 0.1)
 
-    def draw(self):
-        screen.blit(self.img, self.img.get_rect(center=(self.x, self.y)))
+        # -- decrease velocity
+        self.velocity = np.array((self.velocity[0] + self.k,
+            self.velocity[1] + self.k,
+            self.velocity[2]), 'f')
+        # -- resize de la particule quand elle se déplace
+        self.position *= self.scale_k
+        self.scale_k += 0.0002 
 
-
-class Smoke:
-    def __init__(self, x=screen_width // 2, y=screen_height // 2 + 150):
-        self.x = x
-        self.y = y
+   
+class Smoke():
+    """Smoke with SmokeParticles héritant de Node pour faciliter la gestion des enfants"""
+    def __init__(self, position=-np.array((0,0,0),'f')):
+        self.position = position #offset de sdépart des particules
         self.particles = []
-        self.frames = 0
+        self.frames = 0 #current frame
+        self.rate = 10 #rate at which particles are added (1 out of 5 frames)
 
     def update(self):
-        self.particles = [i for i in self.particles if i.alive]
-        self.frames += 1
-        if self.frames % 2 == 0:
+        """Evolution de la fumée"""
+        self.particles = [i for i in self.particles if i.alive] #on fait le tri
+        self.frames += 1 #on avance d'un frame
+        if self.frames % self.rate == 0: #on rajoute une particule tous les rate
             self.frames = 0
-            self.particles.append(SmokeParticle(self.x, self.y))
+            # print("+1", len(self.particles))
+            self.particles.append(SmokeParticle(position=self.position.copy()))
+
+
+    def draw(self, primitives=GL.GL_TRIANGLES, **other_uniforms):
+        """Dessin de la fumée"""
+        self.update() #mise à jour du nb de particules
         for i in self.particles:
-            i.update()
-
-    def draw(self):
-        for i in self.particles:
-            i.draw()
-
-
-smoke = Smoke()
-
-
-def main_game():
-    while True:
-        events = pygame.event.get()
-        for e in events:
-            if e.type == pygame.QUIT:
-                quit()
-            if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_ESCAPE:
-                    quit()
-        screen.fill((0, 0, 0))
-        smoke.update()
-        smoke.draw()
-        pygame.display.update()
-        clock.tick(FPS)
-        pygame.display.set_caption(f'FPS = {clock.get_fps()}')
-
-
-main_game()
+            i.update() #mise à jour des particules restantes
+            i.draw(primitives=primitives,**other_uniforms) #dessin des particules

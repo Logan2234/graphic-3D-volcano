@@ -6,7 +6,6 @@ import os  # os function, i.e. checking file status
 import sys
 import time  # launch a function at exit
 from itertools import cycle  # allows easy circular choice list
-
 import assimpcy  # 3D resource loader
 import glfw  # lean window system wrapper for OpenGL
 import numpy as np  # all matrix manipulations & OpenGL args
@@ -342,7 +341,7 @@ def load(file, shader, tex_file=None, **params):
     return [root_node]
 
 
-# ------------  Viewer class & window management ------------------------------
+#------------  Viewer class & window management ------------------------------
 class Viewer(Node):
     """ GLFW viewer window, with classic initialization & graphics loop """
 
@@ -366,6 +365,7 @@ class Viewer(Node):
         self.first_mouse = True
         self.limit_fps = True
 
+
         # register event handlers
         glfw.set_key_callback(self.win, self.on_key)
         glfw.set_cursor_pos_callback(self.win, self.on_mouse_move)
@@ -379,7 +379,7 @@ class Viewer(Node):
 
         # initialize GL by setting viewport and default render characteristics
         GL.glClearColor(0.1, 0.1, 0.1, 0.1)
-        GL.glEnable(GL.GL_CULL_FACE)   # backface culling enabled (TP2)
+        GL.glEnable(GL.GL_CULL_FACE)   # TODO:pour le smoke le disable backface culling enabled (TP2)
         GL.glEnable(GL.GL_DEPTH_TEST)  # depth test now enabled (TP2)
 
         # cyclic iterator to easily toggle polygon rendering modes
@@ -387,7 +387,6 @@ class Viewer(Node):
 
     def run(self):
         """ Main render loop for this OpenGL window """
-        last_time = time.time()
         while not glfw.window_should_close(self.win):
             if (self.limit_fps and time.time() - last_time > 1/60):
                 # clear draw buffer and depth buffer (<-TP2)
@@ -413,6 +412,7 @@ class Viewer(Node):
                 # Poll for and process events
                 glfw.poll_events()
                 last_time = time.time()
+
 
     def on_key(self, win, key, _scancode, action, _mods):
         """ 'Q' or 'Escape' quits """

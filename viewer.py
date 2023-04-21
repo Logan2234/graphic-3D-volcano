@@ -10,6 +10,7 @@ from core import Node, Shader, Viewer, load
 from floor import Floor
 from transform import scale, translate
 from disk import Disk
+#from smoke import Smoke, SmokeParticle
 
 def main():
     """create a window, add scene objects, then run rendering loop"""
@@ -54,6 +55,10 @@ def main():
 
     viewer.add(island)
     viewer.add(Water(water_shader))
+
+
+    # smoke = Smoke()
+    # viewer.add(smoke)
 
     # start rendering loop
     viewer.run()
