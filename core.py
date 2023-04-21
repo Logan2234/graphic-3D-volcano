@@ -15,7 +15,7 @@ import OpenGL.GL as GL  # standard Python OpenGL wrapper
 from camera import (CAMERA_NORMAL_MOVE, CAMERA_PAN_MOVE, CAMERA_ROTATE_MOVE,
                     Camera)
 # our transform functions
-from transform import identity, Trackball
+from transform import identity
 
 # initialize and automatically terminate glfw on exit
 glfw.init()
@@ -359,9 +359,12 @@ class Viewer(Node):
         # make win's OpenGL context current; no OpenGL calls can happen before
         glfw.make_context_current(self.win)
 
-        # initialize trackball
-        self.trackball = Trackball()
-        self.mouse = (0, 0)
+        self.camera = Camera()
+        windows_size = glfw.get_window_size(self.win)
+        self.mouse = (windows_size[0]/2, windows_size[1]/2)
+        self.first_mouse = True
+        self.limit_fps = True
+
 
         # register event handlers
         glfw.set_key_callback(self.win, self.on_key)
@@ -376,60 +379,83 @@ class Viewer(Node):
 
         # initialize GL by setting viewport and default render characteristics
         GL.glClearColor(0.1, 0.1, 0.1, 0.1)
-        GL.glEnable(GL.GL_CULL_FACE)   # backface culling enabled (TP2)
+        GL.glEnable(GL.GL_CULL_FACE)   # TODO:pour le smoke le disable backface culling enabled (TP2)
         GL.glEnable(GL.GL_DEPTH_TEST)  # depth test now enabled (TP2)
 
         # cyclic iterator to easily toggle polygon rendering modes
         self.fill_modes = cycle([GL.GL_LINE, GL.GL_POINT, GL.GL_FILL])
 
-    def run(self, update=None, arg=None):
+    def run(self):
         """ Main render loop for this OpenGL window """
         while not glfw.window_should_close(self.win):
-            # clear draw buffer and depth buffer (<-TP2)
-            GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+            if (self.limit_fps and time.time() - last_time > 1/60):
+                # clear draw buffer and depth buffer (<-TP2)
+                GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
-            win_size = glfw.get_window_size(self.win)
-            
-            if (update is not None):
-                arg.update()
+                # Hide the cursor
+                glfw.set_input_mode(self.win, glfw.CURSOR,
+                                    glfw.CURSOR_DISABLED)
 
-            # draw our scene objects
-            cam_pos = np.linalg.inv(self.trackball.view_matrix())[:, 3]
-            self.draw(view=self.trackball.view_matrix(),
-                      projection=self.trackball.projection_matrix(win_size),
-                      model=identity(),
-                      w_camera_position=cam_pos)
-            # flush render commands, and swap draw buffers
-            glfw.swap_buffers(self.win)
+                win_size = glfw.get_window_size(self.win)
 
-            # Poll for and process events
-            glfw.poll_events()
+                # draw our scene objects
+                self.draw(view=self.camera.get_view_matrix(),
+                          projection=self.camera.projection_matrix(win_size),
+                          model=identity(),
+                          w_camera_position=self.camera.camera_position(),
+                          time=glfw.get_time(),
+                          resolution=win_size)
 
-    def on_key(self, _win, key, _scancode, action, _mods):
+                # flush render commands, and swap draw buffers
+                glfw.swap_buffers(self.win)
+
+                # Poll for and process events
+                glfw.poll_events()
+                last_time = time.time()
+
+
+    def on_key(self, win, key, _scancode, action, _mods):
         """ 'Q' or 'Escape' quits """
         if action == glfw.PRESS or action == glfw.REPEAT:
             if key == glfw.KEY_ESCAPE or key == glfw.KEY_Q:
                 glfw.set_window_should_close(self.win, True)
-            if key == glfw.KEY_W:
+            if key == glfw.KEY_Z:
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, next(self.fill_modes))
-            if key == glfw.KEY_SPACE:
+            if key == glfw.KEY_ENTER:
                 glfw.set_time(0.0)
+            if key in (glfw.KEY_W, glfw.KEY_A, glfw.KEY_S, glfw.KEY_D, glfw.KEY_SPACE, glfw.KEY_C):
+                self.camera.process_mouvement(win)
+            if key in (glfw.KEY_KP_ADD, glfw.KEY_KP_SUBTRACT):
+                self.camera.changeSpeed(win)
 
             # call Node.key_handler which calls key_handlers for all drawables
             self.key_handler(key)
 
     def on_mouse_move(self, win, xpos, ypos):
         """ Rotate on left-click & drag, pan on right-click & drag """
-        old = self.mouse
-        self.mouse = (xpos, glfw.get_window_size(win)[1] - ypos)
-        if glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_LEFT):
-            self.trackball.drag(old, self.mouse, glfw.get_window_size(win))
-        if glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_RIGHT):
-            self.trackball.pan(old, self.mouse)
+        if self.first_mouse:
+            self.mouse = (xpos, ypos)
+            self.first_mouse = False
 
-    def on_scroll(self, win, _deltax, deltay):
+        xoffset = xpos - self.mouse[0]
+        yoffset = self.mouse[1] - ypos
+
+        if glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_LEFT):
+            self.camera.process_mouse_movement(
+                xoffset, yoffset, CAMERA_ROTATE_MOVE)
+        elif glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_RIGHT):
+            self.camera.process_mouse_movement(
+                xoffset, yoffset, CAMERA_PAN_MOVE)
+        else:
+            self.camera.process_mouse_movement(
+                xoffset, yoffset, CAMERA_NORMAL_MOVE)
+
+        self.mouse = (xpos, ypos)
+
+    def on_scroll(self, _win, _deltax, deltay):
         """ Scroll controls the camera distance to trackball center """
-        self.trackball.zoom(deltay, glfw.get_window_size(win)[1])
+        # self.trackball.zoom(deltay, glfw.get_window_size(win)[1])
+        self.camera.process_mouse_scroll(deltay)
 
     def on_size(self, _win, _width, _height):
         """ window size update => update viewport to new framebuffer size """
