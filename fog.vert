@@ -9,17 +9,17 @@ in vec2 texcoord;
 
 uniform mat4 model, view, projection;
 
-out vec3 world_pos;
-out vec3 world_normal;
-out vec2 out_texcoord;
+out vec3 frag_pos;
+out vec3 out_normal;
+out vec2 frag_tex_coords;
 out vec4 viewSpace;
 
 void main(){
 
     //used for lighting models
-    world_pos = (model * vec4(position, 1)).xyz;
-    world_normal = normalize(mat3(model) * normal);
-    out_texcoord = texcoord;
+    frag_pos = (model * vec4(position, 1)).xyz;
+    out_normal = normalize(mat3(model) * normal);
+    frag_tex_coords = texcoord;
 
     //send it to fragment shader
     viewSpace = view * model * vec4(position, 1);

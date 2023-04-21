@@ -110,7 +110,7 @@ class Camera:
     def changeSpeed(self, win):
         """ Change the speed of the camera accordding to the key pressed """
         if glfw.get_key(win, glfw.KEY_KP_ADD):
-            self.movement_speed += 5
+            self.movement_speed += 1
         elif glfw.get_key(win, glfw.KEY_KP_SUBTRACT):
-            self.movement_speed -= 5
+            self.movement_speed -= 1
         print("Speed changed to " + str(self.movement_speed))

@@ -25,26 +25,27 @@ atexit.register(glfw.terminate)
 
 # ------------ low level OpenGL object wrappers ----------------------------
 class Shader:
-    """ Helper class to create and automatically destroy shader program """
+    """Helper class to create and automatically destroy shader program"""
+
     @staticmethod
     def _compile_shader(src, shader_type):
-        src = open(src, 'r', encoding='UTF-8').read() if os.path.exists(src) else src
-        src = src.decode('ascii') if isinstance(src, bytes) else src
+        src = open(src, "r", encoding="UTF-8").read() if os.path.exists(src) else src
+        src = src.decode("ascii") if isinstance(src, bytes) else src
         shader = GL.glCreateShader(shader_type)
         GL.glShaderSource(shader, src)
         GL.glCompileShader(shader)
         status = GL.glGetShaderiv(shader, GL.GL_COMPILE_STATUS)
-        src = ('%3d: %s' % (i+1, l) for i, l in enumerate(src.splitlines()))
+        src = ("%3d: %s" % (i + 1, l) for i, l in enumerate(src.splitlines()))
         if not status:
-            log = GL.glGetShaderInfoLog(shader).decode('ascii')
+            log = GL.glGetShaderInfoLog(shader).decode("ascii")
             GL.glDeleteShader(shader)
-            src = '\n'.join(src)
-            print('Compile failed for %s\n%s\n%s' % (shader_type, log, src))
+            src = "\n".join(src)
+            print("Compile failed for %s\n%s\n%s" % (shader_type, log, src))
             sys.exit(1)
         return shader
 
     def __init__(self, vertex_source, fragment_source, debug=False):
-        """ Shader can be initialized with raw strings or source file names """
+        """Shader can be initialized with raw strings or source file names"""
         vert = self._compile_shader(vertex_source, GL.GL_VERTEX_SHADER)
         frag = self._compile_shader(fragment_source, GL.GL_FRAGMENT_SHADER)
         if vert and frag:
@@ -56,7 +57,7 @@ class Shader:
             GL.glDeleteShader(frag)
             status = GL.glGetProgramiv(self.glid, GL.GL_LINK_STATUS)
             if not status:
-                print(GL.glGetProgramInfoLog(self.glid).decode('ascii'))
+                print(GL.glGetProgramInfoLog(self.glid).decode("ascii"))
                 os._exit(1)
 
         # get location, size & type for uniform variables using GL introspection
@@ -66,18 +67,18 @@ class Shader:
         for var in range(GL.glGetProgramiv(self.glid, GL.GL_ACTIVE_UNIFORMS)):
             name, size, type_ = GL.glGetActiveUniform(self.glid, var)
             # remove array characterization
-            name = name.decode().split('[')[0]
+            name = name.decode().split("[")[0]
             args = [GL.glGetUniformLocation(self.glid, name), size]
             # add transpose=True as argument for matrix types
             if type_ in {GL.GL_FLOAT_MAT2, GL.GL_FLOAT_MAT3, GL.GL_FLOAT_MAT4}:
                 args.append(True)
             if debug:
                 call = self.GL_SETTERS[type_].__name__
-                print(f'uniform {get_name[type_]} {name}: {call}{tuple(args)}')
+                print(f"uniform {get_name[type_]} {name}: {call}{tuple(args)}")
             self.uniforms[name] = (self.GL_SETTERS[type_], args)
 
     def set_uniforms(self, uniforms):
-        """ set only uniform variables that are known to shader """
+        """set only uniform variables that are known to shader"""
         for name in uniforms.keys() & self.uniforms.keys():
             set_uniform, args = self.uniforms[name]
             set_uniform(*args, uniforms[name])
@@ -86,16 +87,22 @@ class Shader:
         GL.glDeleteProgram(self.glid)  # object dies => destroy GL object
 
     GL_SETTERS = {
-        GL.GL_UNSIGNED_INT:      GL.glUniform1uiv,
+        GL.GL_UNSIGNED_INT: GL.glUniform1uiv,
         GL.GL_UNSIGNED_INT_VEC2: GL.glUniform2uiv,
         GL.GL_UNSIGNED_INT_VEC3: GL.glUniform3uiv,
         GL.GL_UNSIGNED_INT_VEC4: GL.glUniform4uiv,
-        GL.GL_FLOAT:      GL.glUniform1fv, GL.GL_FLOAT_VEC2:   GL.glUniform2fv,
-        GL.GL_FLOAT_VEC3: GL.glUniform3fv, GL.GL_FLOAT_VEC4:   GL.glUniform4fv,
-        GL.GL_INT:        GL.glUniform1iv, GL.GL_INT_VEC2:     GL.glUniform2iv,
-        GL.GL_INT_VEC3:   GL.glUniform3iv, GL.GL_INT_VEC4:     GL.glUniform4iv,
-        GL.GL_SAMPLER_1D: GL.glUniform1iv, GL.GL_SAMPLER_2D:   GL.glUniform1iv,
-        GL.GL_SAMPLER_3D: GL.glUniform1iv, GL.GL_SAMPLER_CUBE: GL.glUniform1iv,
+        GL.GL_FLOAT: GL.glUniform1fv,
+        GL.GL_FLOAT_VEC2: GL.glUniform2fv,
+        GL.GL_FLOAT_VEC3: GL.glUniform3fv,
+        GL.GL_FLOAT_VEC4: GL.glUniform4fv,
+        GL.GL_INT: GL.glUniform1iv,
+        GL.GL_INT_VEC2: GL.glUniform2iv,
+        GL.GL_INT_VEC3: GL.glUniform3iv,
+        GL.GL_INT_VEC4: GL.glUniform4iv,
+        GL.GL_SAMPLER_1D: GL.glUniform1iv,
+        GL.GL_SAMPLER_2D: GL.glUniform1iv,
+        GL.GL_SAMPLER_3D: GL.glUniform1iv,
+        GL.GL_SAMPLER_CUBE: GL.glUniform1iv,
         GL.GL_FLOAT_MAT2: GL.glUniformMatrix2fv,
         GL.GL_FLOAT_MAT3: GL.glUniformMatrix3fv,
         GL.GL_FLOAT_MAT4: GL.glUniformMatrix4fv,
@@ -103,11 +110,11 @@ class Shader:
 
 
 class VertexArray:
-    """ helper class to create and self destroy OpenGL vertex array objects."""
+    """helper class to create and self destroy OpenGL vertex array objects."""
 
     def __init__(self, shader, attributes, index=None, usage=GL.GL_STATIC_DRAW):
-        """ Vertex array from attributes and optional index array. Vertex
-            Attributes should be list of arrays with one row per vertex. """
+        """Vertex array from attributes and optional index array. Vertex
+        Attributes should be list of arrays with one row per vertex."""
 
         # create vertex array object, bind it
         self.glid = GL.glGenVertexArrays(1)
@@ -126,23 +133,22 @@ class VertexArray:
                 GL.glEnableVertexAttribArray(loc)
                 GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.buffers[name])
                 GL.glBufferData(GL.GL_ARRAY_BUFFER, data, usage)
-                GL.glVertexAttribPointer(
-                    loc, size, GL.GL_FLOAT, False, 0, None)
+                GL.glVertexAttribPointer(loc, size, GL.GL_FLOAT, False, 0, None)
 
         # optionally create and upload an index buffer for this object
         self.draw_command = GL.glDrawArrays
         self.arguments = (0, nb_primitives)
         if index is not None:
-            self.buffers['index'] = GL.glGenBuffers(1)
+            self.buffers["index"] = GL.glGenBuffers(1)
             index_buffer = np.array(index, np.int32, copy=False)  # good format
-            GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, self.buffers['index'])
+            GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, self.buffers["index"])
             GL.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, index_buffer, usage)
             self.draw_command = GL.glDrawElements
             self.arguments = (index_buffer.size, GL.GL_UNSIGNED_INT, None)
         GL.glBindVertexArray(0)
 
     def execute(self, primitive, attributes=None):
-        """ draw a vertex array, either as direct array or indexed array """
+        """draw a vertex array, either as direct array or indexed array"""
 
         # optionally update the data attribute VBOs, useful for e.g. particles
         attributes = attributes or {}
@@ -160,22 +166,25 @@ class VertexArray:
 
 # ------------  Mesh is the core drawable -------------------------------------
 class Mesh:
-    """ Basic mesh class, attributes and uniforms passed as arguments """
+    """Basic mesh class, attributes and uniforms passed as arguments"""
 
-    def __init__(self, shader, attributes, index=None,
-                 usage=GL.GL_STATIC_DRAW, **uniforms):
+    def __init__(
+        self, shader, attributes, index=None, usage=GL.GL_STATIC_DRAW, **uniforms
+    ):
         self.shader = shader
         self.uniforms = uniforms
         self.vertex_array = VertexArray(shader, attributes, index, usage)
 
     def draw(self, primitives=GL.GL_TRIANGLES, attributes=None, **uniforms):
+        """Draw function to draw a mesh"""
         GL.glUseProgram(self.shader.glid)
         self.shader.set_uniforms({**self.uniforms, **uniforms})
         self.vertex_array.execute(primitives, attributes)
 
+
 # ------------  Node is the core drawable for hierarchical scene graphs -------
 class Node:
-    """ Scene graph transform and parameter broadcast node """
+    """Scene graph transform and parameter broadcast node"""
 
     def __init__(self, children=(), transform=identity()):
         self.transform = transform
@@ -183,18 +192,18 @@ class Node:
         self.children = list(iter(children))
 
     def add(self, *drawables):
-        """ Add drawables to this node, simply updating children list """
+        """Add drawables to this node, simply updating children list"""
         self.children.extend(drawables)
 
     def draw(self, model=identity(), **other_uniforms):
-        """ Recursive draw, passing down updated model matrix. """
-        self.world_transform = model@self.transform
+        """Recursive draw, passing down updated model matrix."""
+        self.world_transform = model @ self.transform
         for child in self.children:
             child.draw(model=self.world_transform, **other_uniforms)
 
     def key_handler(self, key):
-        """ Dispatch keyboard events to children with key handler """
-        for child in (c for c in self.children if hasattr(c, 'key_handler')):
+        """Dispatch keyboard events to children with key handler"""
+        for child in (c for c in self.children if hasattr(c, "key_handler")):
             child.key_handler(key)
 
 
@@ -215,7 +224,7 @@ except ImportError:
 
 
 def load(file, shader, tex_file=None, **params):
-    """ load resources from file using assimp, return node hierarchy """
+    """load resources from file using assimp, return node hierarchy"""
     try:
         pp = assimpcy.aiPostProcessSteps
         flags = pp.aiProcess_JoinIdenticalVertices | pp.aiProcess_FlipUVs
@@ -225,30 +234,36 @@ def load(file, shader, tex_file=None, **params):
         flags |= pp.aiProcess_RemoveRedundantMaterials
         scene = assimpcy.aiImportFile(file, flags)
     except assimpcy.all.AssimpError as exception:
-        print('ERROR loading', file + ': ', exception.args[0].decode())
+        print("ERROR loading", file + ": ", exception.args[0].decode())
         return []
 
     # ----- Pre-load textures; embedded textures not supported at the moment
-    path = os.path.dirname(file) if os.path.dirname(file) != '' else './'
+    path = os.path.dirname(file) if os.path.dirname(file) != "" else "./"
     for mat in scene.mMaterials:
         if tex_file:
             tfile = tex_file
-        elif 'TEXTURE_BASE' in mat.properties:  # texture token
-            name = mat.properties['TEXTURE_BASE'].split(
-                '/')[-1].split('\\')[-1]
+        elif "TEXTURE_BASE" in mat.properties:  # texture token
+            name = mat.properties["TEXTURE_BASE"].split("/")[-1].split("\\")[-1]
             # search texture in file's whole subdir since path often screwed up
             paths = os.walk(path, followlinks=True)
-            tfile = next((os.path.join(d, f) for d, _, n in paths for f in n
-                          if name.startswith(f) or f.startswith(name)), None)
-            assert tfile, 'Cannot find texture %s in %s subtree' % (name, path)
+            tfile = next(
+                (
+                    os.path.join(d, f)
+                    for d, _, n in paths
+                    for f in n
+                    if name.startswith(f) or f.startswith(name)
+                ),
+                None,
+            )
+            assert tfile, "Cannot find texture %s in %s subtree" % (name, path)
         else:
             tfile = None
         if Texture is not None and tfile:
-            mat.properties['diffuse_map'] = Texture(tex_file=tfile)
+            mat.properties["diffuse_map"] = Texture(tex_file=tfile)
 
     # ----- load animations
     def conv(assimp_keys, ticks_per_second):
-        """ Conversion from assimp key struct to our dict representation """
+        """Conversion from assimp key struct to our dict representation"""
         return {key.mTime / ticks_per_second: key.mValue for key in assimp_keys}
 
     # load first animation in scene file (could be a loop over all animations)
@@ -260,15 +275,15 @@ def load(file, shader, tex_file=None, **params):
             transform_keyframes[channel.mNodeName] = (
                 conv(channel.mPositionKeys, anim.mTicksPerSecond),
                 conv(channel.mRotationKeys, anim.mTicksPerSecond),
-                conv(channel.mScalingKeys, anim.mTicksPerSecond)
+                conv(channel.mScalingKeys, anim.mTicksPerSecond),
             )
 
     # ---- prepare scene graph nodes
-    nodes = {}                                       # nodes name -> node lookup
+    nodes = {}  # nodes name -> node lookup
     nodes_per_mesh_id = [[] for _ in scene.mMeshes]  # nodes holding a mesh_id
 
     def make_nodes(assimp_node):
-        """ Recursively builds nodes for our graph, matching assimp nodes """
+        """Recursively builds nodes for our graph, matching assimp nodes"""
         keyframes = transform_keyframes.get(assimp_node.mName, None)
         if keyframes and KeyFrameControlNode:
             node = KeyFrameControlNode(*keyframes, assimp_node.mTransformation)
@@ -290,10 +305,10 @@ def load(file, shader, tex_file=None, **params):
         # initialize mesh with args from file, merge and override with params
         index = mesh.mFaces
         uniforms = dict(
-            k_d=mat.get('COLOR_DIFFUSE', (1, 1, 1)),
-            k_s=mat.get('COLOR_SPECULAR', (1, 1, 1)),
-            k_a=mat.get('COLOR_AMBIENT', (0, 0, 0)),
-            s=mat.get('SHININESS', 16.),
+            k_d=mat.get("COLOR_DIFFUSE", (1, 1, 1)),
+            k_s=mat.get("COLOR_SPECULAR", (1, 1, 1)),
+            k_a=mat.get("COLOR_AMBIENT", (0, 0, 0)),
+            s=mat.get("SHININESS", 16.0),
         )
         attributes = dict(
             position=mesh.mVertices,
@@ -312,22 +327,23 @@ def load(file, shader, tex_file=None, **params):
         if mesh.HasBones:
             # skinned mesh: weights given per bone => convert per vertex for GPU
             # first, populate an array with MAX_BONES entries per vertex
-            vbone = np.array([[(0, 0)] * MAX_BONES] * mesh.mNumVertices,
-                             dtype=[('weight', 'f4'), ('id', 'u4')])
+            vbone = np.array(
+                [[(0, 0)] * MAX_BONES] * mesh.mNumVertices,
+                dtype=[("weight", "f4"), ("id", "u4")],
+            )
             for bone_id, bone in enumerate(mesh.mBones[:MAX_BONES]):
                 for entry in bone.mWeights:  # need weight,id pairs for sorting
                     vbone[entry.mVertexId][bone_id] = (entry.mWeight, bone_id)
 
-            vbone.sort(order='weight')   # sort rows, high weights last
-            vbone = vbone[:, -4:]        # limit bone size, keep highest 4
+            vbone.sort(order="weight")  # sort rows, high weights last
+            vbone = vbone[:, -4:]  # limit bone size, keep highest 4
 
-            attributes.update(bone_ids=vbone['id'],
-                              bone_weights=vbone['weight'])
+            attributes.update(bone_ids=vbone["id"], bone_weights=vbone["weight"])
 
         new_mesh = Mesh(shader, attributes, index, **{**uniforms, **params})
 
-        if Textured is not None and 'diffuse_map' in mat:
-            new_mesh = Textured(new_mesh, diffuse_map=mat['diffuse_map'])
+        if Textured is not None and "diffuse_map" in mat:
+            new_mesh = Textured(new_mesh, diffuse_map=mat["diffuse_map"])
         if Skinned and mesh.HasBones:
             # make bone lookup array & offset matrix, indexed by bone index (id)
             bone_nodes = [nodes[bone.mName] for bone in mesh.mBones]
@@ -337,14 +353,18 @@ def load(file, shader, tex_file=None, **params):
             node_to_populate.add(new_mesh)
 
     nb_triangles = sum((mesh.mNumFaces for mesh in scene.mMeshes))
-    print('Loaded', file, '\t(%d meshes, %d faces, %d nodes, %d animations)' %
-          (scene.mNumMeshes, nb_triangles, len(nodes), scene.mNumAnimations))
+    print(
+        "Loaded",
+        file,
+        "\t(%d meshes, %d faces, %d nodes, %d animations)"
+        % (scene.mNumMeshes, nb_triangles, len(nodes), scene.mNumAnimations),
+    )
     return [root_node]
 
 
 # ------------  Viewer class & window management ------------------------------
 class Viewer(Node):
-    """ GLFW viewer window, with classic initialization & graphics loop """
+    """GLFW viewer window, with classic initialization & graphics loop"""
 
     def __init__(self, width=640, height=480):
         super().__init__()
@@ -355,14 +375,14 @@ class Viewer(Node):
         glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, GL.GL_TRUE)
         glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
         glfw.window_hint(glfw.RESIZABLE, True)
-        self.win = glfw.create_window(width, height, 'Viewer', None, None)
+        self.win = glfw.create_window(width, height, "Viewer", None, None)
 
         # make win's OpenGL context current; no OpenGL calls can happen before
         glfw.make_context_current(self.win)
 
         self.camera = Camera()
         windows_size = glfw.get_window_size(self.win)
-        self.mouse = (windows_size[0]/2, windows_size[1]/2)
+        self.mouse = (windows_size[0] / 2, windows_size[1] / 2)
         self.first_mouse = True
         self.limit_fps = True
 
@@ -373,39 +393,43 @@ class Viewer(Node):
         glfw.set_window_size_callback(self.win, self.on_size)
 
         # useful message to check OpenGL renderer characteristics
-        print('OpenGL', GL.glGetString(GL.GL_VERSION).decode() + ', GLSL',
-              GL.glGetString(GL.GL_SHADING_LANGUAGE_VERSION).decode() +
-              ', Renderer', GL.glGetString(GL.GL_RENDERER).decode())
+        print(
+            "OpenGL",
+            GL.glGetString(GL.GL_VERSION).decode() + ", GLSL",
+            GL.glGetString(GL.GL_SHADING_LANGUAGE_VERSION).decode() + ", Renderer",
+            GL.glGetString(GL.GL_RENDERER).decode(),
+        )
 
         # initialize GL by setting viewport and default render characteristics
         GL.glClearColor(0.1, 0.1, 0.1, 0.1)
-        GL.glEnable(GL.GL_CULL_FACE)   # backface culling enabled (TP2)
+        GL.glEnable(GL.GL_CULL_FACE)  # backface culling enabled (TP2)
         GL.glEnable(GL.GL_DEPTH_TEST)  # depth test now enabled (TP2)
 
         # cyclic iterator to easily toggle polygon rendering modes
         self.fill_modes = cycle([GL.GL_LINE, GL.GL_POINT, GL.GL_FILL])
 
     def run(self):
-        """ Main render loop for this OpenGL window """
+        """Main render loop for this OpenGL window"""
         last_time = time.time()
         while not glfw.window_should_close(self.win):
-            if (self.limit_fps and time.time() - last_time > 1/60):
+            if self.limit_fps and time.time() - last_time > 1 / 60:
                 # clear draw buffer and depth buffer (<-TP2)
                 GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
                 # Hide the cursor
-                glfw.set_input_mode(self.win, glfw.CURSOR,
-                                    glfw.CURSOR_DISABLED)
+                glfw.set_input_mode(self.win, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
                 win_size = glfw.get_window_size(self.win)
 
                 # draw our scene objects
-                self.draw(view=self.camera.get_view_matrix(),
-                          projection=self.camera.projection_matrix(win_size),
-                          model=identity(),
-                          w_camera_position=self.camera.camera_position(),
-                          time=glfw.get_time(),
-                          resolution=win_size)
+                self.draw(
+                    view=self.camera.get_view_matrix(),
+                    projection=self.camera.projection_matrix(win_size),
+                    model=identity(),
+                    w_camera_position=self.camera.camera_position(),
+                    time=glfw.get_time(),
+                    resolution=win_size,
+                )
 
                 # flush render commands, and swap draw buffers
                 glfw.swap_buffers(self.win)
@@ -415,7 +439,7 @@ class Viewer(Node):
                 last_time = time.time()
 
     def on_key(self, win, key, _scancode, action, _mods):
-        """ 'Q' or 'Escape' quits """
+        """'Q' or 'Escape' quits"""
         if action == glfw.PRESS or action == glfw.REPEAT:
             if key == glfw.KEY_ESCAPE or key == glfw.KEY_Q:
                 glfw.set_window_should_close(self.win, True)
@@ -423,7 +447,14 @@ class Viewer(Node):
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, next(self.fill_modes))
             if key == glfw.KEY_ENTER:
                 glfw.set_time(0.0)
-            if key in (glfw.KEY_W, glfw.KEY_A, glfw.KEY_S, glfw.KEY_D, glfw.KEY_SPACE, glfw.KEY_C):
+            if key in (
+                glfw.KEY_W,
+                glfw.KEY_A,
+                glfw.KEY_S,
+                glfw.KEY_D,
+                glfw.KEY_SPACE,
+                glfw.KEY_C,
+            ):
                 self.camera.process_mouvement(win)
             if key in (glfw.KEY_KP_ADD, glfw.KEY_KP_SUBTRACT):
                 self.camera.changeSpeed(win)
@@ -432,7 +463,7 @@ class Viewer(Node):
             self.key_handler(key)
 
     def on_mouse_move(self, win, xpos, ypos):
-        """ Rotate on left-click & drag, pan on right-click & drag """
+        """Rotate on left-click & drag, pan on right-click & drag"""
         if self.first_mouse:
             self.mouse = (xpos, ypos)
             self.first_mouse = False
@@ -441,22 +472,19 @@ class Viewer(Node):
         yoffset = self.mouse[1] - ypos
 
         if glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_LEFT):
-            self.camera.process_mouse_movement(
-                xoffset, yoffset, CAMERA_ROTATE_MOVE)
+            self.camera.process_mouse_movement(xoffset, yoffset, CAMERA_ROTATE_MOVE)
         elif glfw.get_mouse_button(win, glfw.MOUSE_BUTTON_RIGHT):
-            self.camera.process_mouse_movement(
-                xoffset, yoffset, CAMERA_PAN_MOVE)
+            self.camera.process_mouse_movement(xoffset, yoffset, CAMERA_PAN_MOVE)
         else:
-            self.camera.process_mouse_movement(
-                xoffset, yoffset, CAMERA_NORMAL_MOVE)
+            self.camera.process_mouse_movement(xoffset, yoffset, CAMERA_NORMAL_MOVE)
 
         self.mouse = (xpos, ypos)
 
     def on_scroll(self, _win, _deltax, deltay):
-        """ Scroll controls the camera distance to trackball center """
+        """Scroll controls the camera distance to trackball center"""
         # self.trackball.zoom(deltay, glfw.get_window_size(win)[1])
         self.camera.process_mouse_scroll(deltay)
 
     def on_size(self, _win, _width, _height):
-        """ window size update => update viewport to new framebuffer size """
+        """window size update => update viewport to new framebuffer size"""
         GL.glViewport(0, 0, *glfw.get_framebuffer_size(self.win))

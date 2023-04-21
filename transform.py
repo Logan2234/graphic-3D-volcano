@@ -10,6 +10,7 @@ from numbers import Number  # useful to check type of arg: scalar or vector?
 
 # external module
 import numpy as np  # matrices, vectors & quaternions are numpy arrays
+from perlin_noise import PerlinNoise
 
 # Useful home made functions --------------------------------------------------
 
@@ -27,21 +28,21 @@ def compute_normals(base_coords, indices):
     return np.array(normals, np.float32)
 
 
-from perlin_noise import PerlinNoise
-
-
-def create_grid(size, noise=False, height_offset = 0, formula = None):
+def create_grid(size, noise=False, height_offset=0, formula=None):
     """Create grid for terrain generation"""
     positions = []
     indices = []
-    if (noise):
+    if noise:
         noise = PerlinNoise(10)
 
     for i in range(-size, size + 1):
         for j in range(-size, size + 1):
-            if (noise):
-                height = 5 * noise([(i + size) / (2 * size), (j + size) / (2 * size)]) + height_offset
-            elif (formula):
+            if noise:
+                height = (
+                    5 * noise([(i + size) / (2 * size), (j + size) / (2 * size)])
+                    + height_offset
+                )
+            elif formula:
                 height = formula(i, j)
             else:
                 height = height_offset

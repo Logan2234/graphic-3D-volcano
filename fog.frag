@@ -12,8 +12,8 @@ out vec4 out_color;
 // uniform vec3 light_position;
 uniform vec3 w_camera_position;
 
-uniform sampler2D diffuse_map;
-uniform sampler2D diffuse_map_2;
+uniform sampler2D tex;
+uniform sampler2D tex2;
 
 //0 linear; 1 exponential; 2 exponential square
 // uniform int fogSelector;
@@ -26,10 +26,10 @@ const vec3 DiffuseLight=vec3(.15,.05,0.);
 const vec3 RimColor=vec3(.2,.2,.2);
 
 //from vertex shader
-in vec3 world_pos;
-in vec3 world_normal;
+in vec3 frag_pos;
+in vec3 out_normal;
 in vec4 viewSpace;
-in vec2 out_texcoord;
+in vec2 frag_tex_coords;
 
 //0 linear; 1 exponential; 2 exponential square
 const int fogSelector = 1;
@@ -40,18 +40,18 @@ const float FogDensity=.005;
 
 void main(){
 
-    vec4 tex1 = texture(diffuse_map, out_texcoord);
-    vec4 tex2 = texture(diffuse_map_2, out_texcoord);
+    vec4 tex1 = texture(tex, frag_tex_coords);
+    vec4 tex2 = texture(tex2, frag_tex_coords);
 
     //get light an view directions
-    vec3 L=normalize(light_position-world_pos);
-    vec3 V=normalize(w_camera_position-world_pos);
+    vec3 L = normalize(light_position - frag_pos);
+    vec3 V = normalize(w_camera_position - frag_pos);
 
     //diffuse lighting
-    vec3 diffuse=DiffuseLight*max(0,dot(L,world_normal));
+    vec3 diffuse = DiffuseLight * max(0, dot(L, out_normal));
 
     //rim lighting
-    float rim=1-max(dot(V,world_normal),0.);
+    float rim = 1 - max(dot(V, out_normal), 0.);
     rim=smoothstep(.6,1.,rim);
     vec3 finalRim=RimColor*vec3(rim,rim,rim);
     //get all lights and texture

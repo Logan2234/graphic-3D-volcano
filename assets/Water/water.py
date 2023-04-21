@@ -1,6 +1,5 @@
 """ Water object """
 
-import numpy as np
 from OpenGL import GL
 
 from core import Mesh
@@ -27,8 +26,10 @@ class Water(Textured):
                 "position": self.positions,
                 "tex_coord": [
                     (
-                        (self.positions[i][0] + self.scale * self.taille) / (2 * self.scale * self.taille),
-                        (self.positions[i][1] + self.scale * self.taille) / (2 * self.scale * self.taille),
+                        (self.positions[i][0] + self.scale * self.taille)
+                        / (2 * self.scale * self.taille),
+                        (self.positions[i][1] + self.scale * self.taille)
+                        / (2 * self.scale * self.taille),
                     )
                     for i in range(len(self.positions))
                 ],
