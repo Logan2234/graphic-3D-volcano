@@ -86,6 +86,19 @@ def main():
     # smoke = Smoke()
     # viewer.add(smoke)
 
+    print("\n############## CONTROLS ##############")
+    print("- ZQSD: Touche directionnelles")
+    print("- Espace: S'envoler")
+    print("- C: Descendre des cieux")
+    print("- W: Changer de mode d'affichage (normal, wireframe, vertex)")
+    print("- + / - : Changer de vitesse de déplacement")
+    print("- Mouvement de la souris: Tourner la caméra")
+    print("- Molette de la souris: Zoomer / Dézoomer")
+    print("- Clic droit: Déplacement alternatif")
+    print("- Clic gauche: Pas eu le temps d'être implémenté")
+    print("- Échap / A: Quitter")
+    print("######################################")
+
     # start rendering loop
     viewer.run()
 

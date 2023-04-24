@@ -112,9 +112,6 @@ class Camera:
         # also re-calculate the Right and Up vector
         self.right = normalized(np.cross(self.front, self.world_up))
         self.up = normalized(np.cross(self.right, self.front))
-        print(self.position)
-        print(self.yaw)
-        print(self.pitch)
 
     def changeSpeed(self, win):
         """Change the speed of the camera accordding to the key pressed"""
