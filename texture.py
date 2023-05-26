@@ -1,3 +1,5 @@
+"""Texture module"""
+
 import OpenGL.GL as GL  # standard Python OpenGL wrapper
 from PIL import Image  # load texture maps
 
