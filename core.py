@@ -459,7 +459,7 @@ class Viewer(Node):
             ):
                 self.camera.process_mouvement(win)
             if key in (glfw.KEY_KP_ADD, glfw.KEY_KP_SUBTRACT):
-                self.camera.changeSpeed(win)
+                self.camera.change_speed(win)
 
             # call Node.key_handler which calls key_handlers for all drawables
             self.key_handler(key)

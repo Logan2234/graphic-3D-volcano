@@ -17,7 +17,6 @@ def main():
     """create a window, add scene objects, then run rendering loop"""
     viewer = Viewer()
 
-    shader = Shader("fog.vert", "fog.frag")
     floor_shader = Shader("floor.vert", "floor.frag")
     lava_shader = Shader("lava.vert", "lava.frag")
     water_shader = Shader(

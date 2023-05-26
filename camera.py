@@ -84,10 +84,8 @@ class Camera:
 
             # make sure that when pitch is out of bounds, screen doesn't get flipped
             if constrain_pitch:
-                if self.pitch > 90:
-                    self.pitch = 90
-                if self.pitch < -90:
-                    self.pitch = -90
+                self.pitch = min(self.pitch, 90)
+                self.pitch = max(self.pitch, -90)
 
             # update Front, Right and Up Vectors using the updated Euler angles
             self.update_camera_vectors()
@@ -95,10 +93,8 @@ class Camera:
     def process_mouse_scroll(self, yoffset):
         """Zoom effect using mouse scroll"""
         self.zoom -= float(yoffset)
-        if self.zoom < 1.0:
-            self.zoom = 1.0
-        if self.zoom > 50.0:
-            self.zoom = 50.0
+        self.zoom = max(self.zoom, 1.0)
+        self.zoom = min(self.zoom, 50.0)
 
     def update_camera_vectors(self):
         """Compute all the vectors after a rotation"""
@@ -113,7 +109,7 @@ class Camera:
         self.right = normalized(np.cross(self.front, self.world_up))
         self.up = normalized(np.cross(self.right, self.front))
 
-    def changeSpeed(self, win):
+    def change_speed(self, win):
         """Change the speed of the camera accordding to the key pressed"""
         if glfw.get_key(win, glfw.KEY_KP_ADD):
             self.movement_speed += 1
