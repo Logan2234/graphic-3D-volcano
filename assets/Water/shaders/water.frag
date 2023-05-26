@@ -29,7 +29,7 @@ void main() {
     // vec4 tex_color = mix(vec4(texture(skybox, R).rgb, 1), vec4(0.18, 0.49, 0.65, 1.0), 0.7);
 
     // Textured version with reflection
-    vec4 tex_color = mix(texture(skybox, R), texture(tex, frag_tex_coords), 1);
+    vec4 tex_color = mix(texture(skybox, R), texture(tex, frag_tex_coords), 0.5);
 
     // Textured version with work on normal
     // vec4 tex_color = mix(texture(tex, frag_tex_coords), vec4(0.23, 0.54, 0.70, 1), out_normal.z * 0.8);
